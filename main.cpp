@@ -2,6 +2,17 @@
 #include <fstream>
 #include <iostream>
 
+#include "Utils/Color.hpp"
+
+void write_color(std::ofstream& out, const Color& color)
+{
+    int ir = static_cast<int>(255.999 * color.r);
+    int ig = static_cast<int>(255.999 * color.g);
+    int ib = static_cast<int>(255.999 * color.b);
+
+    out << ir << ' ' << ig << ' ' << ib << '\n';
+}
+
 int main()
 {
     std::ofstream f {"../image.ppm"};
@@ -29,16 +40,11 @@ int main()
         {
             // Colors are first normalized to the range [0,1]
             // by convention...
-            auto r = (double)i/(width - 1);
-            auto g = (double)j/(height - 1);
-            auto b = 0.25;
+            Color c { (float)i/(width - 1),
+                      (float)j/(height - 1),
+                      0.25 };
 
-            // ...and then to [0,255] for the PPM file.
-            int ir = static_cast<int>(255.999 * r);
-            int ig = static_cast<int>(255.999 * g);
-            int ib = static_cast<int>(255.999 * b);
-
-            f << ir << ' ' << ig << ' ' << ib << '\n';
+            write_color(f, c);
         }
     }
 
