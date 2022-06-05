@@ -114,3 +114,15 @@ struct Vector4
         return !(rhs == *this);
     }
 };
+
+constexpr Vector4 operator+(Vector4 vec1, const Vector4& vec2)
+{
+    vec1 += vec2;
+    return vec1;
+}
+
+constexpr Vector4 operator*(Vector4 vec1, float scalar)
+{
+    vec1 *= scalar;
+    return vec1;
+}

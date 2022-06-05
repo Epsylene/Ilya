@@ -2,6 +2,7 @@
 #pragma once
 
 #include <array>
+#include <cmath>
 
 struct Vector3
 {
@@ -29,7 +30,7 @@ struct Vector3
 
     ///////////////////////////
     /// @brief Unary Vector3 sum
-    constexpr Vector3& operator+=(const Vector3& vec)
+    Vector3& operator+=(const Vector3& vec)
     {
         x += vec.x;
         y += vec.y;
@@ -40,7 +41,7 @@ struct Vector3
 
     //////////////////////////////////
     /// @brief Unary Vector3 difference
-    constexpr Vector3& operator-=(const Vector3& vec)
+    Vector3& operator-=(const Vector3& vec)
     {
         x -= vec.x;
         y -= vec.y;
@@ -51,7 +52,7 @@ struct Vector3
 
     //////////////////////////////////////
     /// @brief Unary Vector3 scalar product
-    constexpr Vector3& operator*=(float scalar)
+    Vector3& operator*=(float scalar)
     {
         x *= scalar;
         y *= scalar;
@@ -62,7 +63,7 @@ struct Vector3
 
     ///////////////////////////////////////
     /// @brief Unary Vector3 scalar division
-    constexpr Vector3& operator/=(float scalar)
+    Vector3& operator/=(float scalar)
     {
         x /= scalar;
         y /= scalar;
@@ -76,7 +77,7 @@ struct Vector3
     ///
     /// This is only provided for the sake of convenience,
     /// in dot product functions and the like.
-    constexpr Vector3& operator*=(const Vector3& vec)
+    Vector3& operator*=(const Vector3& vec)
     {
         x *= vec.x;
         y *= vec.y;
@@ -87,7 +88,7 @@ struct Vector3
 
     //////////////////////////
     /// @brief Opposite Vector3
-    constexpr Vector3 operator-() const
+    Vector3 operator-() const
     {
         return {-x, -y, -z};
     }
@@ -108,3 +109,13 @@ struct Vector3
         return !(rhs == *this);
     }
 };
+
+using Vec3 = Vector3;
+
+Vector3 operator+(Vector3 vec1, const Vector3& vec2);
+Vector3 operator-(Vector3 vec1, const Vector3& vec2);
+Vector3 operator*(Vector3 vec, float scalar);
+Vector3 operator*(float scalar, Vector3 vec);
+Vector3 operator/(Vector3 vec1, float scalar);
+
+Vector3 unit(const Vector3& vec);

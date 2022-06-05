@@ -58,3 +58,4 @@ Color operator+(const Color& c1, const Color& c2);
 Color operator-(const Color& c1, const Color& c2);
 Color operator*(const Color& c1, const Color& c2);
 Color operator*(const Color& color, float factor);
+Color operator*(float factor, const Color& color);
