@@ -15,7 +15,7 @@ void write_color(std::ofstream& out, const Color& color)
     out << ir << ' ' << ig << ' ' << ib << '\n';
 }
 
-bool hit_sphere(const Vec3& center, float radius, const Ray& r)
+float hit_sphere(const Vec3& center, float radius, const Ray& r)
 {
     // How do we detect if a ray hits a sphere ? Let's say the ray
     // is described with a point P and a sphere of radius R is placed
@@ -25,24 +25,34 @@ bool hit_sphere(const Vec3& center, float radius, const Ray& r)
     // equation that (P - C)^2 = R^2. But we know P = A + tB, where
     // A is the ray origin, B its direction and t the time; then
     // (A + tB - C)^2 = R^2 <=> (tB)^2 + 2tB(A-C) + (A-C)^2 - R^2 = 0,
-    // which is simply a quadratic equation in t. If this equation has
-    // solutions, it means the ray has hit the sphere at least once
-    // (and at most twice): thus we only need to check that the
-    // equation's discriminant is positive to check if the ray has
-    // indeed hit the sphere.
+    // which is simply a quadratic equation in t. The solutions of this
+    // equation are the times at which the ray hits the sphere.
     auto oc = r.orig - center;
     auto a = dot(r.dir, r.dir);
     auto b = 2 * dot(r.dir, oc);
     auto c = dot(oc, oc) - radius*radius;
 
     auto discriminant = b*b - 4*a*c;
-    return discriminant > 0;
+
+    if(discriminant < 0)
+        return -1.f;
+    else
+        return (-b - std::sqrt(discriminant))/(2.f * a);
 }
 
 Color ray_color(const Ray& r)
 {
-    if(hit_sphere({0.f, 0.f, -1.f}, 0.5f, r))
-        return {1.f, 0.f, 0.f};
+    Vec3 sphere_center {0.f, 0.f, -1.f};
+    auto t = hit_sphere(sphere_center, 0.5f, r);
+    if(t > 0.f)
+    {
+        // If the time at which the ray hits the sphere is positive,
+        // then we calculate the normal for the point hit by the
+        // ray, and color the sphere according to these normal
+        // coordinates.
+        auto n = unit(r.at(t) - sphere_center);
+        return 0.5f * Color(n + Vec3{1.f, 1.f, 1.f});
+    }
 
     // We get the unit vector from the ray direction.
     // Its Y component ranges from -1 to 1, so t ranges
@@ -50,9 +60,9 @@ Color ray_color(const Ray& r)
     // the colour gradient; the result is that the background
     // colour goes vertically from white to blue.
     Vec3 unit_dir = unit(r.dir);
-    auto t = 0.5f*(unit_dir.y + 1.f);
+    auto m = 0.5f*(unit_dir.y + 1.f);
 
-    return (1-t)*Color(1.f) + t*Color(0.5f, 0.7f, 1.f);
+    return (1-m)*Color(1.f) + m*Color(0.5f, 0.7f, 1.f);
 }
 
 int main()

@@ -15,7 +15,7 @@ class Ray
         Ray(const Vector3& orig, const Vector3& dir):
             orig(orig), dir(dir) {}
 
-        Vector3 at(float t)
+        Vector3 at(float t) const
         {
             return orig + dir * t;
         }
