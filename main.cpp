@@ -15,8 +15,35 @@ void write_color(std::ofstream& out, const Color& color)
     out << ir << ' ' << ig << ' ' << ib << '\n';
 }
 
+bool hit_sphere(const Vec3& center, float radius, const Ray& r)
+{
+    // How do we detect if a ray hits a sphere ? Let's say the ray
+    // is described with a point P and a sphere of radius R is placed
+    // at a point C. Then saying that the ray hits the sphere is the
+    // same as saying that P is anywhere in a radius R of the center
+    // (because that is how the sphere boundary is defined), or in
+    // equation that (P - C)^2 = R^2. But we know P = A + tB, where
+    // A is the ray origin, B its direction and t the time; then
+    // (A + tB - C)^2 = R^2 <=> (tB)^2 + 2tB(A-C) + (A-C)^2 - R^2 = 0,
+    // which is simply a quadratic equation in t. If this equation has
+    // solutions, it means the ray has hit the sphere at least once
+    // (and at most twice): thus we only need to check that the
+    // equation's discriminant is positive to check if the ray has
+    // indeed hit the sphere.
+    auto oc = r.orig - center;
+    auto a = dot(r.dir, r.dir);
+    auto b = 2 * dot(r.dir, oc);
+    auto c = dot(oc, oc) - radius*radius;
+
+    auto discriminant = b*b - 4*a*c;
+    return discriminant > 0;
+}
+
 Color ray_color(const Ray& r)
 {
+    if(hit_sphere({0.f, 0.f, -1.f}, 0.5f, r))
+        return {1.f, 0.f, 0.f};
+
     // We get the unit vector from the ray direction.
     // Its Y component ranges from -1 to 1, so t ranges
     // from 0 to 1, which we use as the parameter for
@@ -33,7 +60,7 @@ int main()
     std::ofstream f {"../image.ppm"};
 
     const float aspect = 16.f/9.f;
-    const int width = 256;
+    const int width = 512;
     const int height = static_cast<int>(width / aspect);
 
     // Our viewport is a plane that ranges [-1,1] in height and
@@ -76,7 +103,7 @@ int main()
             auto v = (float)j/(height - 1);
 
             // The rays scan the entire viewport, starting from the
-            // lower left corner horizontally and then vertically
+            // lower left corner, in horizontal strips
             Ray r {orig, llc + u*horizontal + v*vertical - orig};
             write_color(f, ray_color(r));
         }

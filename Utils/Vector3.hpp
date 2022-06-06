@@ -119,3 +119,4 @@ Vector3 operator*(float scalar, Vector3 vec);
 Vector3 operator/(Vector3 vec1, float scalar);
 
 Vector3 unit(const Vector3& vec);
+float dot(const Vector3& vec1, const Vector3& vec2);

@@ -36,3 +36,8 @@ Vector3 unit(const Vector3& vec)
     auto invnorm = 1.f / std::sqrt(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z);
     return vec*invnorm;
 }
+
+float dot(const Vector3& vec1, const Vector3& vec2)
+{
+    return (vec1.x*vec2.x + vec1.y*vec2.y + vec1.z*vec2.z);
+}
