@@ -1,10 +1,5 @@
 
-#include <fstream>
-#include <iostream>
-
-#include "Utils/Color.hpp"
-#include "Utils/Vector3.hpp"
-#include "Objects/Ray.hpp"
+#include "Ilya.hpp"
 
 void write_color(std::ofstream& out, const Color& color)
 {
@@ -15,44 +10,13 @@ void write_color(std::ofstream& out, const Color& color)
     out << ir << ' ' << ig << ' ' << ib << '\n';
 }
 
-float hit_sphere(const Vec3& center, float radius, const Ray& r)
+Color ray_color(const Ray& r, const HittableList& world)
 {
-    // How do we detect if a ray hits a sphere ? Let's say the ray
-    // is described with a point P and a sphere of radius R is placed
-    // at a point C. Then saying that the ray hits the sphere is the
-    // same as saying that P is anywhere in a radius R of the center
-    // (because that is how the sphere boundary is defined), or in
-    // equation that (P - C)^2 = R^2. But we know P = A + tB, where
-    // A is the ray origin, B its direction and t the time; then
-    // (A + tB - C)^2 = R^2 <=> (tB)^2 + 2tB(A-C) + (A-C)^2 - R^2 = 0,
-    // which is simply a quadratic equation in t. The solutions of this
-    // equation are the times at which the ray hits the sphere.
-    auto oc = r.orig - center;
-    auto a = dot(r.dir, r.dir);
-    auto b = 2 * dot(r.dir, oc);
-    auto c = dot(oc, oc) - radius*radius;
-
-    auto discriminant = b*b - 4*a*c;
-
-    if(discriminant < 0)
-        return -1.f;
-    else
-        return (-b - std::sqrt(discriminant))/(2.f * a);
-}
-
-Color ray_color(const Ray& r)
-{
-    Vec3 sphere_center {0.f, 0.f, -1.f};
-    auto t = hit_sphere(sphere_center, 0.5f, r);
-    if(t > 0.f)
-    {
-        // If the time at which the ray hits the sphere is positive,
-        // then we calculate the normal for the point hit by the
-        // ray, and color the sphere according to these normal
-        // coordinates.
-        auto n = unit(r.at(t) - sphere_center);
-        return 0.5f * Color(n + Vec3{1.f, 1.f, 1.f});
-    }
+    HitRecord rec {};
+    // Check if the ray hits the 'world' hittable, and shade
+    // according to the normal components
+    if(world.hit(r, 0, infinity, rec))
+        return 0.5f * (rec.normal + Vec3{1.f});
 
     // We get the unit vector from the ray direction.
     // Its Y component ranges from -1 to 1, so t ranges
@@ -89,6 +53,10 @@ int main()
         // of the viewport (note that it is -Vec3(0.f, 0.f, focal) because
         // the Z axis points outwards the viewport plane)
 
+    HittableList world {};
+    world.add(std::make_shared<Sphere>(Vec3{0.f, 0.f, -1.f}, 0.5f));
+    world.add(std::make_shared<Sphere>(Vec3{0.f, -100.5f, -1.f}, 100.f));
+
     // Outputting an image file: we use a PPM file, which is a
     // simple format looking like
     //
@@ -115,7 +83,7 @@ int main()
             // The rays scan the entire viewport, starting from the
             // lower left corner, in horizontal strips
             Ray r {orig, llc + u*horizontal + v*vertical - orig};
-            write_color(f, ray_color(r));
+            write_color(f, ray_color(r, world));
         }
     }
 
