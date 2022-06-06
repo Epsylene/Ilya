@@ -1,13 +1,26 @@
 
 #include "Ilya.hpp"
 
-void write_color(std::ofstream& out, const Color& color)
-{
-    int ir = static_cast<int>(255.999 * color.r);
-    int ig = static_cast<int>(255.999 * color.g);
-    int ib = static_cast<int>(255.999 * color.b);
+#include "Utils/Color.hpp"
+#include "Objects/Ray.hpp"
+#include "Objects/Hittable.hpp"
+#include "Objects/Camera.hpp"
 
-    out << ir << ' ' << ig << ' ' << ib << '\n';
+void write_color(std::ofstream& out, const Color& color, int samples_per_pixel)
+{
+    // Colors are scaled inversely proportional to the samples per
+    // pixel: antialiasing works by taking a pixel and sampling a great
+    // number of neighboring pixels into it; this gives a blurry effect
+    // at the edges, where colours change rapidly from one pixel to
+    // another. However, because of the sampling, we have to tone down
+    // each pixel's color, or else the resulting antialised pixel will
+    // be way brighter than it actually is.
+    auto scale = 1.f/samples_per_pixel;
+    auto sc_color = color * scale;
+
+    out << static_cast<int>(256 * std::clamp(sc_color.r, 0.f, 0.999f)) << ' '
+        << static_cast<int>(256 * std::clamp(sc_color.g, 0.f, 0.999f)) << ' '
+        << static_cast<int>(256 * std::clamp(sc_color.b, 0.f, 0.999f)) << '\n';
 }
 
 Color ray_color(const Ray& r, const HittableList& world)
@@ -33,25 +46,10 @@ int main()
 {
     std::ofstream f {"../image.ppm"};
 
-    const float aspect = 16.f/9.f;
+    Camera cam {};
     const int width = 512;
-    const int height = static_cast<int>(width / aspect);
-
-    // Our viewport is a plane that ranges [-1,1] in height and
-    // [-aspect, aspect] in width. The rays all come from the origin
-    // and go towards this plane; the distance between the origin and
-    // the plane is called the "focal length" (here set at 1).
-    float viewport_height = 2.f;
-    float viewport_width = aspect * viewport_height;
-    float focal = 1.f;
-
-    Vec3 orig {}; // the origin point
-    Vec3 horizontal {viewport_width, 0.f, 0.f};
-    Vec3 vertical {0.f, viewport_height, 0.f};
-    Vec3 llc = orig - horizontal/2.f - vertical/2.f - Vec3(0.f, 0.f, focal);
-        // the vector going from the origin to the lower left corner
-        // of the viewport (note that it is -Vec3(0.f, 0.f, focal) because
-        // the Z axis points outwards the viewport plane)
+    const int height = static_cast<int>(width / cam.aspect);
+    const int samples_per_pixel = 25;
 
     HittableList world {};
     world.add(std::make_shared<Sphere>(Vec3{0.f, 0.f, -1.f}, 0.5f));
@@ -76,14 +74,18 @@ int main()
 
         for (int i = 0; i < width; ++i)
         {
-            // Colors are normalized to the range [0,1] by convention
-            auto u = (float)i/(width - 1);
-            auto v = (float)j/(height - 1);
+            Color pixel_color {};
 
-            // The rays scan the entire viewport, starting from the
-            // lower left corner, in horizontal strips
-            Ray r {orig, llc + u*horizontal + v*vertical - orig};
-            write_color(f, ray_color(r, world));
+            for (int s = 0; s < samples_per_pixel; ++s)
+            {
+                // Colors are normalized to the range [0,1] by convention
+                auto u = (i + random_float()) / (width - 1);
+                auto v = (j + random_float()) / (height - 1);
+
+                pixel_color += ray_color(cam.ray(u, v), world);
+            }
+
+            write_color(f, pixel_color, samples_per_pixel);
         }
     }
 

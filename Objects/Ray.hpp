@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "../Utils/Vector3.hpp"
-#include "../Utils/Color.hpp"
+#include "Utils/Vector3.hpp"
+#include "Utils/Color.hpp"
 
 class Ray
 {

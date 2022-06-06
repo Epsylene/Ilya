@@ -1,10 +1,9 @@
 
 #pragma once
 
-#include <vector>
-#include <memory>
+#include "Ilya.hpp"
 
-#include "../Utils/Vector3.hpp"
+#include "Utils/Vector3.hpp"
 #include "Ray.hpp"
 
 struct HitRecord
