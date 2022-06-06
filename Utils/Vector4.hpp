@@ -23,10 +23,6 @@ struct Vector4
        z(z), w(w)
     {}
 
-    constexpr Vector4(const Vector4& vec) = default;
-    constexpr Vector4(Vector4&& vec) noexcept = default;
-    constexpr Vector4& operator=(const Vector4& vec) = default;
-
     ///////////////////////////
     /// @brief Unary Vector4 sum
     constexpr Vector4& operator+=(const Vector4& vec)

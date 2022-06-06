@@ -41,3 +41,27 @@ float dot(const Vector3& vec1, const Vector3& vec2)
 {
     return (vec1.x*vec2.x + vec1.y*vec2.y + vec1.z*vec2.z);
 }
+
+float square(const Vector3& vec)
+{
+    return dot(vec, vec);
+}
+
+Vector3 sqrt(const Vector3& vec)
+{
+    return {std::sqrt(vec.x), std::sqrt(vec.y), std::sqrt(vec.z)};
+}
+
+Vec3 rand_in_unit_sphere()
+{
+    while (true)
+    {
+        // A random point inside of a unit sphere is a random vector in
+        // a unit cube which has norm less than 1.
+        auto p = Vec3::random(-1,1);
+        if (square(p) >= 1)
+            continue;
+
+        return p;
+    }
+}

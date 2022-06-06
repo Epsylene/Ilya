@@ -7,3 +7,4 @@ add_executable(Ilya main.cpp Utils/Vector4.hpp Utils/Color.cpp Objects/Ray.hpp U
 
 target_include_directories(Ilya PUBLIC ${CMAKE_SOURCE_DIR})
 target_precompile_headers(Ilya PUBLIC Ilya.hpp)
+target_compile_options(Ilya PUBLIC -O3 -fno-math-errno)

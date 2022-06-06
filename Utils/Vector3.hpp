@@ -23,10 +23,6 @@ struct Vector3
         z(z)
     {}
 
-    constexpr Vector3(const Vector3& vec) = default;
-    constexpr Vector3(Vector3&& vec) noexcept = default;
-    constexpr Vector3& operator=(const Vector3& vec) = default;
-
     ///////////////////////////
     /// @brief Unary Vector3 sum
     Vector3& operator+=(const Vector3& vec)
@@ -107,6 +103,13 @@ struct Vector3
     {
         return !(rhs == *this);
     }
+
+    inline static Vector3 random(float min = 0.f, float max = 1.f)
+    {
+        return { random_float(min, max),
+                 random_float(min, max),
+                 random_float(min, max) };
+    }
 };
 
 using Vec3 = Vector3;
@@ -119,3 +122,7 @@ Vector3 operator/(Vector3 vec1, float scalar);
 
 Vector3 unit(const Vector3& vec);
 float dot(const Vector3& vec1, const Vector3& vec2);
+float square(const Vector3& vec);
+Vector3 sqrt(const Vector3& vec);
+
+Vec3 rand_in_unit_sphere();
