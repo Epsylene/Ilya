@@ -39,12 +39,25 @@ Color ray_color(const Ray& r, const HittableList& world, int depth)
         return {};
 
     // Check if the ray hits the 'world' hittable, and bounce off
-    // the surface in a random direction (approximating a diffuse
-    // material)
+    // the surface with some color attenuation (to approximate the
+    // fact that part of the rays are being absorbed by the material).
+    // On the other hand, the time at which rays are casted is not
+    // set exactly at 0: if we did so, a bunch of the rays that were
+    // supposed to scatter off the surface actually would because of
+    // floating point rounding errors start a little under the surface,
+    // intersect with it and never get out. This would produce an image
+    // riddled with random black pixels, an outcome known as "shadow
+    // acne"; setting the time at which the ray detection starts just
+    // a bit after 0 gets rid of most of it spectacularly well.
     if(world.hit(r, 0.001f, infinity, rec))
     {
-        Vec3 new_dir = rec.normal + rand_in_unit_sphere();
-        return 0.5f * ray_color({rec.p, new_dir}, world, depth - 1);
+        Ray scattered {};
+        Color attenuation {};
+
+        if(rec.material->scatter(r, scattered, attenuation, rec))
+            return attenuation * ray_color(scattered, world, depth - 1);
+
+        return {};
     }
 
     // We get the unit vector from the ray direction.
@@ -69,8 +82,16 @@ int main()
     const int depth = 50;
 
     HittableList world {};
-    world.add(std::make_shared<Sphere>(Vec3{0.f, 0.f, -1.f}, 0.5f));
-    world.add(std::make_shared<Sphere>(Vec3{0.f, -100.5f, -1.f}, 100.f));
+
+    auto ground = std::make_shared<Lambertian>(Color{0.8, 0.8, 0.0});
+    auto center = std::make_shared<Lambertian>(Color{0.7, 0.3, 0.3});
+    auto left   = std::make_shared<Metal>(Color{0.8, 0.8, 0.8}, 0.3f);
+    auto right  = std::make_shared<Metal>(Color{0.8, 0.6, 0.2}, 1.f);
+
+    world.add(std::make_shared<Sphere>(Vec3{-1.f, 0.f, -1.f}, 0.5f, left));
+    world.add(std::make_shared<Sphere>(Vec3{0.f, 0.f, -1.f}, 0.5f, center));
+    world.add(std::make_shared<Sphere>(Vec3{1.f, 0.f, -1.f}, 0.5f, right));
+    world.add(std::make_shared<Sphere>(Vec3{0.f, -100.5f, -1.f}, 100.f, ground));
 
     // Outputting an image file: we use a PPM file, which is a
     // simple format looking like

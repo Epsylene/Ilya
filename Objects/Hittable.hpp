@@ -5,12 +5,14 @@
 
 #include "Utils/Vector3.hpp"
 #include "Ray.hpp"
+#include "Material.hpp"
 
 struct HitRecord
 {
     Vec3 p, normal;
     float t;
     bool frontFace;
+    std::shared_ptr<Material> material;
 
     inline void face_normal(const Ray& r, const Vec3& outNormal)
     {
@@ -56,10 +58,11 @@ class Sphere: public Hittable
 
         Vec3 center;
         float radius;
+        std::shared_ptr<Material> material;
 
         Sphere() = default;
-        Sphere(const Vec3& center, float radius):
-            center(center), radius(radius) {}
+        Sphere(const Vec3& center, float radius, const std::shared_ptr<Material>& mat):
+            center(center), radius(radius), material(mat) {}
 
         virtual bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
 };

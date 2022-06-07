@@ -65,3 +65,15 @@ Vec3 rand_in_unit_sphere()
         return p;
     }
 }
+
+Vec3 random_unit_vector()
+{
+    return unit(rand_in_unit_sphere());
+}
+
+bool near_zero(const Vector3& vec)
+{
+    auto e = std::numeric_limits<float>::epsilon();
+
+    return (vec.x < e && vec.y < e && vec.z < e);
+}

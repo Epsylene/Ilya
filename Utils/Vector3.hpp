@@ -126,3 +126,5 @@ float square(const Vector3& vec);
 Vector3 sqrt(const Vector3& vec);
 
 Vec3 rand_in_unit_sphere();
+Vec3 random_unit_vector();
+bool near_zero(const Vector3& vec);
