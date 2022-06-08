@@ -73,6 +73,8 @@ bool Sphere::hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const
     rec.p = r.at(rec.t);
     rec.normal = (rec.p - center)/radius;
     rec.material = material;
+    auto out_normal = (rec.p - center)/radius;
+    rec.face_normal(r, out_normal);
 
     return true;
 }

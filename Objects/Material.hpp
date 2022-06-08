@@ -37,3 +37,26 @@ class Metal: public Material
         virtual bool scatter(const Ray& in, Ray& out, Color& attenuation,
                              const HitRecord& rec) const override;
 };
+
+class Dielectric: public Material
+{
+    public:
+
+        float refraction;
+
+        Dielectric(float refraction): refraction(refraction) {}
+
+        virtual bool scatter(const Ray& in, Ray& out, Color& attenuation,
+                             const HitRecord& rec) const override;
+
+    private:
+
+        static float reflectance(float cos, float ratio)
+        {
+            // Schlick's approximation for reflectance
+            auto r0 = (1.f - ratio)/(1.f + ratio);
+            r0 *= r0;
+
+            return r0 + (1.f - r0)*std::pow(1 - cos, 5);
+        }
+};

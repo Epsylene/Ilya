@@ -84,11 +84,13 @@ int main()
     HittableList world {};
 
     auto ground = std::make_shared<Lambertian>(Color{0.8, 0.8, 0.0});
-    auto center = std::make_shared<Lambertian>(Color{0.7, 0.3, 0.3});
-    auto left   = std::make_shared<Metal>(Color{0.8, 0.8, 0.8}, 0.3f);
-    auto right  = std::make_shared<Metal>(Color{0.8, 0.6, 0.2}, 1.f);
+    auto left = std::make_shared<Dielectric>(1.1f);
+    auto center  = std::make_shared<Lambertian>(Color{0.1, 0.2, 0.5});
+    auto back  = std::make_shared<Lambertian>(Color{0.5, 0.1, 0.1});
+    auto right = std::make_shared<Metal>(Color{0.8, 0.6, 0.2}, 1.f);
 
     world.add(std::make_shared<Sphere>(Vec3{-1.f, 0.f, -1.f}, 0.5f, left));
+    world.add(std::make_shared<Sphere>(Vec3{-1.2f, 0.f, -2.f}, 0.5f, back));
     world.add(std::make_shared<Sphere>(Vec3{0.f, 0.f, -1.f}, 0.5f, center));
     world.add(std::make_shared<Sphere>(Vec3{1.f, 0.f, -1.f}, 0.5f, right));
     world.add(std::make_shared<Sphere>(Vec3{0.f, -100.5f, -1.f}, 100.f, ground));
