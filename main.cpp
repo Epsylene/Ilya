@@ -75,7 +75,7 @@ int main()
 {
     std::ofstream f {"../image.ppm"};
 
-    Camera cam {{-2, 2, 1}, {0, 0, -1}, {0, 1, 0}, 20.f};
+    Camera cam {{3, 3, 2}, {0, 0, -1}, {0, 1, 0}, 2.f, length(Vec3{3, 3, 2} - Vec3{0, 0, -1}), 20.f};
     const int width = 400;
     const int height = static_cast<int>(width / cam.aspect);
     const int samples_per_pixel = 100;

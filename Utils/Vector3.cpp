@@ -31,6 +31,11 @@ Vector3 operator/(Vector3 vec1, float scalar)
     return vec1;
 }
 
+float length(const Vector3& vec)
+{
+    return std::sqrt(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z);
+}
+
 Vector3 unit(const Vector3& vec)
 {
     auto invnorm = 1.f / std::sqrt(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z);
@@ -67,6 +72,18 @@ Vec3 rand_in_unit_sphere()
         // a unit cube which has norm less than 1.
         auto p = Vec3::random(-1,1);
         if (square(p) >= 1)
+            continue;
+
+        return p;
+    }
+}
+
+Vector3 rand_in_unit_disk()
+{
+    while(true)
+    {
+        Vec3 p {random_float(-1, 1), random_float(-1, 1), 0.f};
+        if(square(p) >= 1)
             continue;
 
         return p;

@@ -10,10 +10,12 @@ class Camera
 {
     public:
 
-        float aspect;
+        float aspect, lens;
         Vec3 orig, llc, horizontal, vertical;
+        Vec3 u, v, w;
 
-        Camera(Vec3 from, Vec3 at, Vec3 up, float fov, float aspect = 16.f/9.f): aspect(aspect)
+        Camera(Vec3 from, Vec3 at, Vec3 up, float aperture, float focus_dist, float fov, float aspect = 16.f/9.f):
+            aspect(aspect), lens(aperture / 2.f)
         {
             // Our viewport is a plane that ranges [-h,h] in height and
             // [-aspect, aspect] in width; h can then be interpreted as
@@ -27,23 +29,29 @@ class Camera
             auto viewport_width = viewport_height * aspect;
 
             // Camera's basis vectors
-            auto w = unit(from - at);
-            auto u = unit(cross(up, w));
-            auto v = cross(w, u);
+            w = unit(from - at);
+            u = unit(cross(up, w));
+            v = cross(w, u);
 
             orig = from; // the origin point
-            horizontal = viewport_width * u;
-            vertical = viewport_height * v;
-            llc = orig - horizontal/2.f - vertical/2.f - w;
+            horizontal = focus_dist * viewport_width * u;
+            vertical = focus_dist * viewport_height * v;
+            llc = orig - horizontal/2.f - vertical/2.f - focus_dist*w;
                 // the vector going from the origin to the lower left
                 // corner of the viewport (note that it is -{0.f, 0.f, focal}
                 // because the Z axis points outwards the viewport plane)
         }
 
-        Ray ray(float u, float v) const
+        Ray ray(float s, float t) const
         {
+            // We take a random vector on the lens border, and use
+            // that as an offset in the ray origin to simulate the
+            // effect of an actual lens.
+            auto rd = lens * rand_in_unit_disk();
+            auto offset = u*rd.x + v*rd.y;
+
             // The "viewport origin" is set at the lower left corner
             // of the viewport plane.
-            return {orig, llc + u*horizontal + v*vertical - orig};
+            return {orig + offset, llc + s*horizontal + t*vertical - orig - offset};
         }
 };
