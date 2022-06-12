@@ -42,6 +42,13 @@ float dot(const Vector3& vec1, const Vector3& vec2)
     return (vec1.x*vec2.x + vec1.y*vec2.y + vec1.z*vec2.z);
 }
 
+Vector3 cross(const Vector3& vec1, const Vector3& vec2)
+{
+    return { vec1.y * vec2.z - vec2.y * vec1.z,
+             vec1.z * vec2.x - vec2.z * vec1.x,
+             vec1.x * vec2.y - vec2.x * vec1.y };
+}
+
 float square(const Vector3& vec)
 {
     return dot(vec, vec);

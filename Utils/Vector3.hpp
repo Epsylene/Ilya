@@ -122,9 +122,10 @@ Vector3 operator/(Vector3 vec1, float scalar);
 
 Vector3 unit(const Vector3& vec);
 float dot(const Vector3& vec1, const Vector3& vec2);
+Vector3 cross(const Vector3& vec1, const Vector3& vec2);
 float square(const Vector3& vec);
 Vector3 sqrt(const Vector3& vec);
 
-Vec3 rand_in_unit_sphere();
-Vec3 random_unit_vector();
+Vector3 rand_in_unit_sphere();
+Vector3 random_unit_vector();
 bool near_zero(const Vector3& vec);

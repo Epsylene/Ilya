@@ -75,7 +75,7 @@ int main()
 {
     std::ofstream f {"../image.ppm"};
 
-    Camera cam {};
+    Camera cam {{-2, 2, 1}, {0, 0, -1}, {0, 1, 0}, 20.f};
     const int width = 400;
     const int height = static_cast<int>(width / cam.aspect);
     const int samples_per_pixel = 100;
@@ -84,13 +84,12 @@ int main()
     HittableList world {};
 
     auto ground = std::make_shared<Lambertian>(Color{0.8, 0.8, 0.0});
-    auto left = std::make_shared<Dielectric>(1.1f);
+    auto left = std::make_shared<Dielectric>(1.5f);
     auto center  = std::make_shared<Lambertian>(Color{0.1, 0.2, 0.5});
-    auto back  = std::make_shared<Lambertian>(Color{0.5, 0.1, 0.1});
-    auto right = std::make_shared<Metal>(Color{0.8, 0.6, 0.2}, 1.f);
+    auto right = std::make_shared<Metal>(Color{0.8, 0.6, 0.2}, 0.f);
 
     world.add(std::make_shared<Sphere>(Vec3{-1.f, 0.f, -1.f}, 0.5f, left));
-    world.add(std::make_shared<Sphere>(Vec3{-1.2f, 0.f, -2.f}, 0.5f, back));
+    world.add(std::make_shared<Sphere>(Vec3{-1.f, 0.f, -1.f}, -0.45f, left));
     world.add(std::make_shared<Sphere>(Vec3{0.f, 0.f, -1.f}, 0.5f, center));
     world.add(std::make_shared<Sphere>(Vec3{1.f, 0.f, -1.f}, 0.5f, right));
     world.add(std::make_shared<Sphere>(Vec3{0.f, -100.5f, -1.f}, 100.f, ground));

@@ -10,23 +10,31 @@ class Camera
 {
     public:
 
-        float aspect = 16.f/9.f, focal = 1.f;
+        float aspect;
         Vec3 orig, llc, horizontal, vertical;
 
-        Camera()
+        Camera(Vec3 from, Vec3 at, Vec3 up, float fov, float aspect = 16.f/9.f): aspect(aspect)
         {
-            // Our viewport is a plane that ranges [-1,1] in height and
-            // [-aspect, aspect] in width. The rays all come from the
-            // origin and go towards this plane; the distance between the
-            // origin and the plane is called the "focal length" (here
-            // set at 1).
-            auto viewport_height = 2.f;
-            auto viewport_width = viewport_height*aspect;
+            // Our viewport is a plane that ranges [-h,h] in height and
+            // [-aspect, aspect] in width; h can then be interpreted as
+            // the distance between the field of view cone and the camera
+            // -plane axis at the point where the plane is situated, which
+            // correspond geometrically to the tangent of half the cone's
+            // aperture angle (that is, the FOV angle). The rays are casted
+            // from the origin towards this plane and form the image.
+            auto h = std::tan(radians(fov)/2.f);
+            auto viewport_height = 2.f * h;
+            auto viewport_width = viewport_height * aspect;
 
-            orig = {}; // the origin point
-            horizontal = {viewport_width, 0.f, 0.f};
-            vertical = {0.f, viewport_height, 0.f};
-            llc = orig - horizontal/2.f - vertical/2.f - Vec3(0.f, 0.f, focal);
+            // Camera's basis vectors
+            auto w = unit(from - at);
+            auto u = unit(cross(up, w));
+            auto v = cross(w, u);
+
+            orig = from; // the origin point
+            horizontal = viewport_width * u;
+            vertical = viewport_height * v;
+            llc = orig - horizontal/2.f - vertical/2.f - w;
                 // the vector going from the origin to the lower left
                 // corner of the viewport (note that it is -{0.f, 0.f, focal}
                 // because the Z axis points outwards the viewport plane)
