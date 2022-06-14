@@ -56,13 +56,19 @@ class Sphere: public Hittable
 {
     public:
 
-        Vec3 center;
+        float t0, t1;
+        Vec3 c0, c1;
         float radius;
         std::shared_ptr<Material> material;
 
         Sphere() = default;
         Sphere(const Vec3& center, float radius, const std::shared_ptr<Material>& mat):
-            center(center), radius(radius), material(mat) {}
+            c0(center), c1(center), t0(0.f), t1(1.f), radius(radius), material(mat) {}
+
+        Sphere(const Vec3& c0, const Vec3& c1, float t0, float t1, float radius, const std::shared_ptr<Material>& mat):
+                c0(c0), c1(c1), t0(t0), t1(t1), radius(radius), material(mat) {}
 
         virtual bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
+
+        Vec3 center(float t) const;
 };

@@ -6,14 +6,14 @@
 #include "Objects/Hittable.hpp"
 #include "Objects/Camera.hpp"
 
-void write_color(std::ofstream& out, const Color& color, int samples_per_pixel)
+void write_Color(std::ofstream& out, const Color& color, int samples_per_pixel)
 {
     // Colors are scaled inversely proportional to the samples per
     // pixel: antialiasing works by taking a pixel and sampling a great
     // number of neighboring pixels into it; this gives a blurry effect
     // at the edges, where colours change rapidly from one pixel to
     // another. However, because of the sampling, we have to tone down
-    // each pixel's color, or else the resulting antialised pixel will
+    // each pixel's Color, or else the resulting antialised pixel will
     // be way brighter than it actually is.
     // However, our image is darker than it should be, for another
     // reason. Human eyes perceive light in a non-linear fashion,
@@ -24,14 +24,14 @@ void write_color(std::ofstream& out, const Color& color, int samples_per_pixel)
     // gamma-corrected, we need first to inverse gamma-correct them;
     // supposing that gamma = 2, we need to elevate to the power 1/2.
     auto scale = 1.f/samples_per_pixel;
-    Color sc_color = sqrt(color * scale);
+    Color sc_Color = sqrt(color * scale);
 
-    out << static_cast<int>(256 * std::clamp(sc_color.r, 0.f, 0.999f)) << ' '
-        << static_cast<int>(256 * std::clamp(sc_color.g, 0.f, 0.999f)) << ' '
-        << static_cast<int>(256 * std::clamp(sc_color.b, 0.f, 0.999f)) << '\n';
+    out << static_cast<int>(256 * std::clamp(sc_Color.r, 0.f, 0.999f)) << ' '
+        << static_cast<int>(256 * std::clamp(sc_Color.g, 0.f, 0.999f)) << ' '
+        << static_cast<int>(256 * std::clamp(sc_Color.b, 0.f, 0.999f)) << '\n';
 }
 
-Color ray_color(const Ray& r, const HittableList& world, int depth)
+Color ray_Color(const Ray& r, const HittableList& world, int depth)
 {
     HitRecord rec {};
 
@@ -39,15 +39,15 @@ Color ray_color(const Ray& r, const HittableList& world, int depth)
         return {};
 
     // Check if the ray hits the 'world' hittable, and bounce off
-    // the surface with some color attenuation (to approximate the
+    // the surface with some Color attenuation (to approximate the
     // fact that part of the rays are being absorbed by the material).
-    // On the other hand, the time at which rays are casted is not
+    // On the other hand, the cast_time at which rays are casted is not
     // set exactly at 0: if we did so, a bunch of the rays that were
     // supposed to scatter off the surface actually would because of
     // floating point rounding errors start a little under the surface,
     // intersect with it and never get out. This would produce an image
     // riddled with random black pixels, an outcome known as "shadow
-    // acne"; setting the time at which the ray detection starts just
+    // acne"; setting the cast_time at which the ray detection starts just
     // a bit after 0 gets rid of most of it spectacularly well.
     if(world.hit(r, 0.001f, infinity, rec))
     {
@@ -55,7 +55,7 @@ Color ray_color(const Ray& r, const HittableList& world, int depth)
         Color attenuation {};
 
         if(rec.material->scatter(r, scattered, attenuation, rec))
-            return attenuation * ray_color(scattered, world, depth - 1);
+            return attenuation * ray_Color(scattered, world, depth - 1);
 
         return {};
     }
@@ -71,11 +71,59 @@ Color ray_color(const Ray& r, const HittableList& world, int depth)
     return (1-m)*Color(1.f) + m*Color(0.5f, 0.7f, 1.f);
 }
 
+HittableList random_scene() {
+    HittableList world;
+
+    auto ground_material = std::make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
+    world.add(std::make_shared<Sphere>(Vec3(0,-1000,0), 1000, ground_material));
+
+    for (int a = -11; a < 11; a++) {
+        for (int b = -11; b < 11; b++) {
+            auto choose_mat = random_float();
+            Vec3 center(a + 0.9*random_float(), 0.2, b + 0.9*random_float());
+
+            if (length((center - Vec3(4, 0.2, 0))) > 0.9) {
+                std::shared_ptr<Material> Sphere_material;
+
+                if (choose_mat < 0.8) {
+                    // diffuse
+                    auto albedo = Vec3::random() * Vec3::random();
+                    Sphere_material = std::make_shared<Lambertian>(albedo);
+
+                    auto c2 = center + Vec3{0.f, random_float(0, 0.5f), 0.f};
+                    world.add(std::make_shared<Sphere>(center, c2, 0.f, 1.f, 0.2, Sphere_material));
+                } else if (choose_mat < 0.95) {
+                    // Metal
+                    auto albedo = Vec3::random(0.5, 1);
+                    auto fuzz = random_float(0, 0.5);
+                    Sphere_material = std::make_shared<Metal>(albedo, fuzz);
+                    world.add(std::make_shared<Sphere>(center, 0.2, Sphere_material));
+                } else {
+                    // glass
+                    Sphere_material = std::make_shared<Dielectric>(1.5);
+                    world.add(std::make_shared<Sphere>(center, 0.2, Sphere_material));
+                }
+            }
+        }
+    }
+
+    auto material1 = std::make_shared<Dielectric>(1.5);
+    world.add(std::make_shared<Sphere>(Vec3(0, 1, 0), 1.0, material1));
+
+    auto material2 = std::make_shared<Lambertian>(Color(0.4, 0.2, 0.1));
+    world.add(std::make_shared<Sphere>(Vec3(-4, 1, 0), 1.0, material2));
+
+    auto material3 = std::make_shared<Metal>(Color(0.7, 0.6, 0.5), 0.0);
+    world.add(std::make_shared<Sphere>(Vec3(4, 1, 0), 1.0, material3));
+
+    return world;
+}
+
 int main()
 {
     std::ofstream f {"../image.ppm"};
 
-    Camera cam {{3, 3, 2}, {0, 0, -1}, {0, 1, 0}, 2.f, length(Vec3{3, 3, 2} - Vec3{0, 0, -1}), 20.f};
+    Camera cam {{13, 2, 3}, {0, 0, 0}, {0, 1, 0}, 0.1f, 10.f, 20.f, 16.f/9.f, 0.f, 1.f};
     const int width = 400;
     const int height = static_cast<int>(width / cam.aspect);
     const int samples_per_pixel = 100;
@@ -84,22 +132,24 @@ int main()
     HittableList world {};
 
     auto ground = std::make_shared<Lambertian>(Color{0.8, 0.8, 0.0});
-    auto left = std::make_shared<Dielectric>(1.5f);
+//    auto left = std::make_shared<Dielectric>(1.5f);
     auto center  = std::make_shared<Lambertian>(Color{0.1, 0.2, 0.5});
-    auto right = std::make_shared<Metal>(Color{0.8, 0.6, 0.2}, 0.f);
+//    auto right = std::make_shared<Metal>(Color{0.8, 0.6, 0.2}, 0.f);
 
-    world.add(std::make_shared<Sphere>(Vec3{-1.f, 0.f, -1.f}, 0.5f, left));
-    world.add(std::make_shared<Sphere>(Vec3{-1.f, 0.f, -1.f}, -0.45f, left));
-    world.add(std::make_shared<Sphere>(Vec3{0.f, 0.f, -1.f}, 0.5f, center));
-    world.add(std::make_shared<Sphere>(Vec3{1.f, 0.f, -1.f}, 0.5f, right));
+//    world.add(std::make_shared<Sphere>(Vec3{-1.f, 0.f, -1.f}, 0.5f, left));
+//    world.add(std::make_shared<Sphere>(Vec3{-1.f, 0.f, -1.f}, -0.45f, left));
+    world.add(std::make_shared<Sphere>(Vec3{0.f, 0.f, -1.f}, Vec3{0.f, 0.5f, -1.f}, 0.f, 1.f, 0.5f, center));
+//    world.add(std::make_shared<Sphere>(Vec3{1.f, 0.f, -1.f}, 0.5f, right));
     world.add(std::make_shared<Sphere>(Vec3{0.f, -100.5f, -1.f}, 100.f, ground));
+
+//    auto world = random_scene();
 
     // Outputting an image file: we use a PPM file, which is a
     // simple format looking like
     //
     //      P3
     //      [columns] [rows]
-    //      [max_color_value]
+    //      [max_Color_value]
     //      [pixel00] [pixel01] ... [pixel0n]
     //      [pixel10] ...
     //      ...
@@ -113,7 +163,7 @@ int main()
 
         for (int i = 0; i < width; ++i)
         {
-            Color pixel_color {};
+            Color pixel_Color {};
 
             for (int s = 0; s < samples_per_pixel; ++s)
             {
@@ -121,10 +171,10 @@ int main()
                 auto u = (i + random_float()) / (width - 1);
                 auto v = (j + random_float()) / (height - 1);
 
-                pixel_color += ray_color(cam.ray(u, v), world, depth);
+                pixel_Color += ray_Color(cam.ray(u, v), world, depth);
             }
 
-            write_color(f, pixel_color, samples_per_pixel);
+            write_Color(f, pixel_Color, samples_per_pixel);
         }
     }
 

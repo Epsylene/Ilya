@@ -40,7 +40,7 @@ bool Lambertian::scatter(const Ray& in, Ray& out, Color& attenuation,
     if(near_zero(scattered))
         scattered = rec.normal;
 
-    out = {rec.p, scattered};
+    out = {rec.p, scattered, in.cast_time};
     attenuation = albedo;
 
     return true;
@@ -56,7 +56,7 @@ bool Metal::scatter(const Ray& in, Ray& out, Color& attenuation,
     // that do not scatter exactly like expected, and the more the
     // object has a matte look to it.
     auto reflected = reflect(unit(in.dir), rec.normal);
-    out = {rec.p, reflected + fuziness * rand_in_unit_sphere()};
+    out = {rec.p, reflected + fuziness * rand_in_unit_sphere(), in.cast_time};
     attenuation = albedo;
 
     // We only want scattering to happen if rays are indeed reflected
@@ -90,7 +90,7 @@ bool Dielectric::scatter(const Ray& in, Ray& out, Color& attenuation,
     else
         dir = refract(udir, rec.normal, ratio);
 
-    out = {rec.p, dir};
+    out = {rec.p, dir, in.cast_time};
 
     return true;
 }

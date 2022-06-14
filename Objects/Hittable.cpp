@@ -11,7 +11,7 @@ bool HittableList::hit(const Ray& r, float tmin, float tmax, HitRecord& rec) con
     {
         // For each object, check if the ray hits it in the interval
         // [tmin,closest_so_far], such that the range is reduced each
-        // time the ray hits an object. In other words, if there are
+        // cast_time the ray hits an object. In other words, if there are
         // three spheres at t2, t1 and t3 (such that t1 < t2 < t3),
         // then :
         //  1) Sphere 1 : hit() true at t2, closest_so_far = t2
@@ -40,11 +40,11 @@ bool Sphere::hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const
     // same as saying that P is anywhere in a radius R of the center
     // (because that is how the sphere boundary is defined), or in
     // equation that (P - C)^2 = R^2. But we know P = A + tB, where
-    // A is the ray origin, B its direction and t the time; then
+    // A is the ray origin, B its direction and t the cast_time; then
     // (A + tB - C)^2 = R^2 <=> (tB)^2 + 2tB(A-C) + (A-C)^2 - R^2 = 0,
     // which is simply a quadratic equation in t. The solutions of this
     // equation are the times at which the ray hits the sphere.
-    auto oc = r.orig - center;
+    auto oc = r.orig - center(r.cast_time);
     auto a = dot(r.dir, r.dir);
     auto b = 2 * dot(r.dir, oc);
     auto c = dot(oc, oc) - radius*radius;
@@ -56,7 +56,7 @@ bool Sphere::hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const
     auto sqrtd = std::sqrt(discriminant);
     auto root = (-b - sqrtd)/(2*a);
 
-    // We want the solution to be within the time
+    // We want the solution to be within the cast_time
     // range [tmin,tmax].
     if(root < tmin || root > tmax)
     {
@@ -71,10 +71,15 @@ bool Sphere::hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const
     // use later
     rec.t = root;
     rec.p = r.at(rec.t);
-    rec.normal = (rec.p - center)/radius;
+    rec.normal = (rec.p - center(r.cast_time))/radius;
     rec.material = material;
-    auto out_normal = (rec.p - center)/radius;
+    auto out_normal = (rec.p - center(r.cast_time))/radius;
     rec.face_normal(r, out_normal);
 
     return true;
+}
+
+Vec3 Sphere::center(float t) const
+{
+    return c0 + (t - t0)/(t1 - t0) * (c1 - c0);
 }
