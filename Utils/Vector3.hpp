@@ -104,6 +104,22 @@ struct Vector3
         return !(rhs == *this);
     }
 
+    float& operator[](size_t idx)
+    {
+        if(idx == 0) return x;
+        else if(idx == 1) return y;
+        else if(idx == 2) return z;
+        else static_assert("Index must be between 0 and 2.");
+    }
+
+    const float& operator[](size_t idx) const
+    {
+        if(idx == 0) return x;
+        else if(idx == 1) return y;
+        else if(idx == 2) return z;
+        else static_assert("Index must be between 0 and 2.");
+    }
+
     inline static Vector3 random(float min = 0.f, float max = 1.f)
     {
         return { random_float(min, max),

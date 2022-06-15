@@ -6,6 +6,7 @@
 #include "Utils/Vector3.hpp"
 #include "Ray.hpp"
 #include "Material.hpp"
+#include "BoundingBox.hpp"
 
 struct HitRecord
 {
@@ -29,6 +30,7 @@ class Hittable
     public:
 
         virtual bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const = 0;
+        virtual bool bounding_box(float t0, float t1, BoundingBox& box) const = 0;
 };
 
 class HittableList: public Hittable
@@ -50,6 +52,26 @@ class HittableList: public Hittable
         }
 
         virtual bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
+
+        virtual bool
+        bounding_box(float t0, float t1, BoundingBox& box) const override;
+};
+
+class BVHnode: public Hittable
+{
+    public:
+
+        std::shared_ptr<Hittable> left, right;
+        BoundingBox box;
+
+        BVHnode(const HittableList& list, float t0, float t1):
+            BVHnode(list.objects, 0, list.objects.size(), t0, t1) {}
+
+        BVHnode(const std::vector<std::shared_ptr<Hittable>>& objects, size_t start, size_t end, float t0, float t1);
+
+        virtual bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
+
+        virtual bool bounding_box(float t0, float t1, BoundingBox& box) const override;
 };
 
 class Sphere: public Hittable
@@ -69,6 +91,8 @@ class Sphere: public Hittable
                 c0(c0), c1(c1), t0(t0), t1(t1), radius(radius), material(mat) {}
 
         virtual bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
+
+        virtual bool bounding_box(float t0, float t1, BoundingBox& box) const override;
 
         Vec3 center(float t) const;
 };

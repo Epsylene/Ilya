@@ -32,6 +32,26 @@ bool HittableList::hit(const Ray& r, float tmin, float tmax, HitRecord& rec) con
     return hit;
 }
 
+bool HittableList::bounding_box(float t0, float t1, BoundingBox& box) const
+{
+    if(objects.empty())
+        return false;
+
+    BoundingBox objbox {};
+    bool first_box = true;
+
+    for (auto& object: objects)
+    {
+        if(!object->bounding_box(t0, t1, objbox))
+            return false;
+
+        box = first_box ? objbox : surrounding_box(box, objbox);
+        first_box = false;
+    }
+
+    return true;
+}
+
 bool Sphere::hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const
 {
     // How do we detect if a ray hits a sphere ? Let's say the ray
@@ -81,5 +101,106 @@ bool Sphere::hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const
 
 Vec3 Sphere::center(float t) const
 {
+    // Center of a sphere that moves at constant speed between points
+    // C0 and C1 in the time t1 - t0, at the time t
     return c0 + (t - t0)/(t1 - t0) * (c1 - c0);
+}
+
+bool Sphere::bounding_box(float t0, float t1, BoundingBox& box) const
+{
+    BoundingBox box1 {center(t0) - Vec3{radius}, center(t0) + Vec3{radius}};
+    BoundingBox box2 {center(t1) - Vec3{radius}, center(t1) + Vec3{radius}};
+    box = surrounding_box(box1, box2);
+
+    return true;
+}
+
+template<int N> requires (N < 3)
+inline bool box_compare(const std::shared_ptr<Hittable>& a, const std::shared_ptr<Hittable> b)
+{
+    BoundingBox box_a {}, box_b {};
+
+    if(!a->bounding_box(0, 0, box_a) || !b->bounding_box(0, 0, box_b))
+        std::cerr << "No bounding box in BVHnode constructor.";
+
+    return box_a.min[N] < box_b.min[N];
+}
+
+BVHnode::BVHnode(const std::vector<std::shared_ptr<Hittable>>& objs, size_t start, size_t end, float t0,
+                 float t1)
+{
+    // The bounding volume hierarchy (BVH) is a structure that constructs
+    // a tree from a set of objects. To do so, we need a comparator
+    // function, which works on a per-axis basis; the axis is chosen
+    // randomly as the constructor keeps being called when constructing
+    // the tree (in other words, node splitting is done each time along
+    // one random axis).
+    auto objects = objs;
+    int axis = random_int(0, 2);
+    auto comparator = (axis == 0) ? box_compare<0>
+                    : (axis == 1) ? box_compare<1>
+                                  : box_compare<2>;
+
+    size_t span = end - start;
+    if(span == 1)
+    {
+        left = right = objects[start];
+    }
+    else if(span == 2)
+    {
+        if(comparator(objects[start], objects[start + 1]))
+        {
+            left = objects[start];
+            right = objects[start + 1];
+        }
+        else
+        {
+            left = objects[start + 1];
+            right = objects[start];
+        }
+    }
+    else
+    {
+        // We work with a top-down method to construct the BVH tree:
+        // first sort the objects using the comparator (so that the
+        // array ordering matches the spatial ordering), split the tree
+        // in two nodes, and repeat until all cases have been covered.
+        std::sort(objects.begin() + start, objects.begin() + end, comparator);
+
+        auto mid = start + span/2;
+        left = std::make_shared<BVHnode>(objects, start, mid, t0, t1);
+        right = std::make_shared<BVHnode>(objects, mid, end, t0, t1);
+    }
+
+    BoundingBox box_left {}, box_right {};
+    if(!left->bounding_box(t0, t1, box_left)
+        || !right->bounding_box(t0, t1, box_right))
+    {
+        std::cerr << "No bounding box in BVHnode constructor.";
+    }
+
+    box = surrounding_box(box_left, box_right);
+}
+
+bool BVHnode::hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const
+{
+    if(!box.hit(r, tmin, tmax))
+        return false;
+
+    // Check if the ray has hit the left node (or, more accurately,
+    // "could hit the left node in the [tmin, tmax] interval). If it has,
+    // the 'tmax' for the right node is the time stored in the hit
+    // record (if the first node has been calculated to be hit at a
+    // certain time, the second node can't be hit after that point
+    // in time).
+    bool hit_left = left->hit(r, tmin, tmax, rec);
+    bool hit_right = right->hit(r, tmin, hit_left ? rec.t : tmax, rec);
+
+    return hit_left || hit_right;
+}
+
+bool BVHnode::bounding_box(float t0, float t1, BoundingBox& box) const
+{
+    box = this->box;
+    return true;
 }
