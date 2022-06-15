@@ -2,6 +2,7 @@
 #pragma once
 
 #include "Ray.hpp"
+#include "Texture.hpp"
 
 struct HitRecord;
 
@@ -16,9 +17,10 @@ class Lambertian: public Material
 {
     public:
 
-        Color albedo;
+        std::shared_ptr<Texture> albedo;
 
-        explicit Lambertian(const Color& albedo): albedo(albedo) {}
+        explicit Lambertian(const Color& albedo): albedo(std::make_shared<SolidColor>(albedo)) {}
+        explicit Lambertian(const std::shared_ptr<Texture> tex): albedo(tex) {}
 
         virtual bool scatter(const Ray& in, Ray& out, Color& attenuation,
                              const HitRecord& rec) const override;

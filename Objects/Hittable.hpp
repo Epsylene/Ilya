@@ -12,6 +12,7 @@ struct HitRecord
 {
     Vec3 p, normal;
     float t;
+    float u, v;
     bool frontFace;
     std::shared_ptr<Material> material;
 
@@ -64,7 +65,7 @@ class BVHnode: public Hittable
         std::shared_ptr<Hittable> left, right;
         BoundingBox box;
 
-        BVHnode(const HittableList& list, float t0, float t1):
+        explicit BVHnode(const HittableList& list, float t0 = 0.f, float t1 = 1.f):
             BVHnode(list.objects, 0, list.objects.size(), t0, t1) {}
 
         BVHnode(const std::vector<std::shared_ptr<Hittable>>& objects, size_t start, size_t end, float t0, float t1);
@@ -91,8 +92,24 @@ class Sphere: public Hittable
                 c0(c0), c1(c1), t0(t0), t1(t1), radius(radius), material(mat) {}
 
         virtual bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
-
         virtual bool bounding_box(float t0, float t1, BoundingBox& box) const override;
 
         Vec3 center(float t) const;
+
+    private:
+
+        static std::pair<float, float> sphere_uv(const Vec3& p)
+        {
+            // To get u and v on the sphere, we first need to get the
+            // sphere coordinates theta and phi; we know theta in
+            // spherical coordinates x = -cos(phi)sin(theta),
+            // y = -cos(theta) and z = sin(phi)sin(theta). Inverting
+            // those equations give us theta and phi; we then only need
+            // to tweak phi's equation a little so that it doesn't
+            // range from -pi to pi but from 0 to 2*pi.
+            auto theta = std::acos(-p.y);
+            auto phi = std::atan2(-p.z, p.x) + pi;
+
+            return { phi/(2*pi), theta/pi };
+        }
 };

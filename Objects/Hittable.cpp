@@ -95,6 +95,7 @@ bool Sphere::hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const
     rec.material = material;
     auto out_normal = (rec.p - center(r.cast_time))/radius;
     rec.face_normal(r, out_normal);
+    std::tie(rec.u, rec.v) = sphere_uv(rec.p);
 
     return true;
 }

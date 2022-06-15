@@ -41,7 +41,7 @@ bool Lambertian::scatter(const Ray& in, Ray& out, Color& attenuation,
         scattered = rec.normal;
 
     out = {rec.p, scattered, in.cast_time};
-    attenuation = albedo;
+    attenuation = albedo->val(rec.u, rec.v, rec.p);
 
     return true;
 }
