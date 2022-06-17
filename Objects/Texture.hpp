@@ -2,6 +2,7 @@
 #pragma once
 
 #include "Utils/Color.hpp"
+#include "Utils/Perlin.hpp"
 
 class Texture
 {
@@ -46,5 +47,20 @@ class CheckerTexture: public Texture
                 return even->val(u, v, p);
             else
                 return odd->val(u, v, p);
+        }
+};
+
+class NoiseTexture: public Texture
+{
+    public:
+
+        Perlin perlin;
+        float scale;
+
+        explicit NoiseTexture(float scale = 5.f): scale(scale) {}
+
+        virtual Color val(float u, float v, const Vec3& p) const override
+        {
+            return 0.5f * Color{1, 1, 1} * (1 + std::sin(scale*p.z + 10*perlin.turbulence(p)));
         }
 };
