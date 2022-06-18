@@ -89,16 +89,15 @@ namespace Ilya
                 return false;
         }
 
-        // Once we got the solution, we save it in
-        // the hit record, which we'll be able to
-        // use later
+        // Once we got the solution, we save it in the hit record,
+        // which will allow us to use that data later
         rec.t = root;
         rec.p = r.at(rec.t);
         rec.normal = (rec.p - center(r.cast_time))/radius;
         rec.material = material;
         auto out_normal = (rec.p - center(r.cast_time))/radius;
         rec.face_normal(r, out_normal);
-        std::tie(rec.u, rec.v) = sphere_uv(rec.p);
+        std::tie(rec.u, rec.v) = sphere_uv(out_normal);
 
         return true;
     }

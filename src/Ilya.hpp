@@ -11,10 +11,15 @@
 #include <algorithm>
 #include <filesystem>
 
+#define macro_str(a) #a
+#define xmacro_str(a) macro_str(a)
+
 namespace Ilya
 {
-    const float infinity = std::numeric_limits<float>::infinity();
-    const float pi = static_cast<float>(M_PI);
+    static const std::filesystem::path res_path { xmacro_str(ILYA_RES_DIR) };
+
+    static const float infinity = std::numeric_limits<float>::infinity();
+    static const float pi = static_cast<float>(M_PI);
 
     inline float random_float(float min = 0.f, float max = 1.f)
     {

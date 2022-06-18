@@ -92,11 +92,14 @@ int main()
     auto perlin = std::make_shared<NoiseTexture>(4.f);
     auto perlMat = std::make_shared<Lambertian>(perlin);
 
+    auto earth = std::make_shared<ImageTexture>("earthmap.jpg");
+    auto earthMat = std::make_shared<Lambertian>(earth);
+
 //    world.add(std::make_shared<Sphere>(Vec3{-1.f, 0.f, -1.f}, 0.5f, left));
 //    world.add(std::make_shared<Sphere>(Vec3{-1.f, 0.f, -1.f}, -0.45f, left));
-    world.add(std::make_shared<Sphere>(Vec3{6.f, 1.f, 1.f}, 1.f, perlMat));
+    world.add(std::make_shared<Sphere>(Vec3{6.f, 1.f, 1.f}, 1.f, earthMat));
 //    world.add(std::make_shared<Sphere>(Vec3{1.f, 0.f, -1.f}, 0.5f, right));
-    world.add(std::make_shared<Sphere>(Vec3{0.f, -1000.f, 0.f}, 1000.f, perlMat));
+//    world.add(std::make_shared<Sphere>(Vec3{0.f, -1000.f, 0.f}, 1000.f, perlMat));
 
     world = HittableList{std::make_shared<BVHnode>(world)};
 
