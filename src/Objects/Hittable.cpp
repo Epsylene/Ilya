@@ -207,4 +207,59 @@ namespace Ilya
         box = this->box;
         return true;
     }
+
+    template<Axis ax0, Axis ax1> requires (ax0 != ax1)
+    bool Rectangle<ax0, ax1>::hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const
+    {
+        float t = -1.f;
+        if constexpr(XY<ax0, ax1>)
+            t = (k - r.orig.z)/r.dir.z;
+        else if constexpr(XZ<ax0, ax1>)
+            t = (k - r.orig.y)/r.dir.y;
+        else if constexpr(YZ<ax0, ax1>)
+            t = (k - r.orig.x)/r.dir.x;
+
+        if(t < tmin || t > tmax)
+            return false;
+
+        auto [x, y, z] = r.at(t);
+        if constexpr(XY<ax0, ax1>)
+        {
+            if(x < r0 || x > r1 || y < s0 || y > s1)
+                return false;
+
+            rec.u = (x - r0)/(r1 - r0);
+            rec.v = (y - s0)/(s1 - s0);
+            rec.face_normal(r, {0.f, 0.f, 1.f});
+        }
+        else if constexpr(XZ<ax0, ax1>)
+        {
+            if(x < r0 || x > r1 || z < s0 || z > s1)
+                return false;
+
+            rec.u = (x - r0)/(r1 - r0);
+            rec.v = (z - s0)/(s1 - s0);
+            rec.face_normal(r, {0.f, 1.f, 0.f});
+        }
+        else if constexpr(YZ<ax0, ax1>)
+        {
+            if(y < r0 || y > r1 || z < s0 || z > s1)
+                return false;
+
+            rec.u = (y - r0)/(r1 - r0);
+            rec.v = (z - s0)/(s1 - s0);
+            rec.face_normal(r, {1.f, 0.f, 0.f});
+        }
+
+        rec.t = t;
+        rec.material = material;
+        rec.p = {x, y, z};
+
+        return true;
+    }
+
+    using Axis::X, Axis::Y, Axis::Z;
+    template class Rectangle<X, Y>;
+    template class Rectangle<X, Z>;
+    template class Rectangle<Y, Z>;
 }

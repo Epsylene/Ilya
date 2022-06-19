@@ -115,4 +115,44 @@ namespace Ilya
                 return { phi/(2*pi), theta/pi };
             }
     };
+
+    enum class Axis
+    {
+        X = 0, Y = 1, Z = 2
+    };
+
+    template<Axis ax0, Axis ax1>
+    concept XY = (ax0 == Axis::X && ax1 == Axis::Y);
+
+    template<Axis ax0, Axis ax1>
+    concept XZ = (ax0 == Axis::X && ax1 == Axis::Z);
+
+    template<Axis ax0, Axis ax1>
+    concept YZ = (ax0 == Axis::Y && ax1 == Axis::Z);
+
+    template<Axis ax0, Axis ax1> requires (ax0 != ax1)
+    class Rectangle: public Hittable
+    {
+        public:
+
+            float r0, s0, r1, s1, k;
+            std::shared_ptr<Material> material;
+
+            Rectangle(float r0, float s0, float r1, float s1, float k,
+                      const std::shared_ptr<Material>& mat):
+                      r0(r0), s0(s0), r1(r1), s1(s1), k(k), material(mat) {}
+
+            virtual bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
+            virtual bool bounding_box(float t0, float t1, BoundingBox& box) const override
+            {
+                if constexpr(XY<ax0, ax1>)
+                    box = {{r0, s0, k - 0.0001f}, {r1, s1, k + 0.0001f}};
+                else if constexpr(XZ<ax0, ax1>)
+                    box = {{r0, k - 0.0001f, s0 }, {r1, k + 0.0001f, s1}};
+                else if constexpr(YZ<ax0, ax1>)
+                    box = {{k - 0.0001f, r0, s0 }, {k + 0.0001f, r1, s1}};
+
+                return true;
+            }
+    };
 }

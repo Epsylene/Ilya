@@ -22,7 +22,7 @@ namespace Ilya
 
             Color color;
 
-            explicit SolidColor(Color c): color(c) {}
+            explicit SolidColor(const Color& c): color(c) {}
             SolidColor(float r, float g, float b):
                     color(r, g, b) {}
 

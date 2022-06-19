@@ -33,7 +33,7 @@ void write_Color(std::ofstream& out, const Color& color, int samples_per_pixel)
         << static_cast<int>(256 * std::clamp(sc_Color.b, 0.f, 0.999f)) << '\n';
 }
 
-Color ray_color(const Ray& r, const HittableList& world, int depth)
+Color ray_color(const Ray& r, const Color& background, const HittableList& world, int depth)
 {
     HitRecord rec {};
 
@@ -51,16 +51,22 @@ Color ray_color(const Ray& r, const HittableList& world, int depth)
     // riddled with random black pixels, an outcome known as "shadow
     // acne"; setting the cast_time at which the ray detection starts just
     // a bit after 0 gets rid of most of it spectacularly well.
-    if(world.hit(r, 0.001f, infinity, rec))
-    {
-        Ray scattered {};
-        Color attenuation {};
+    if(!world.hit(r, 0.001f, infinity, rec))
+        return background;
 
-        if(rec.material->scatter(r, scattered, attenuation, rec))
-            return attenuation * ray_color(scattered, world, depth - 1);
+    Ray scattered {};
+    Color attenuation {};
+    Color emitted = rec.material->emitted(rec.u, rec.v, rec.p);
 
-        return {};
-    }
+    // If the ray doesn't scatter from the material, it means that
+    // it is a emissive one (it produces light); then the color we
+    // want to output is the color of the emitted light.
+    if(!rec.material->scatter(r, scattered, attenuation, rec))
+        return emitted;
+
+    // In the other cases, we want to sum the ray color to the
+    // emitted light's color.
+    return emitted + attenuation * ray_color(scattered, background, world, depth - 1);
 
     // We get the unit vector from the ray direction.
     // Its Y component ranges from -1 to 1, so t ranges
@@ -77,29 +83,36 @@ int main()
 {
     std::ofstream f {"../image.ppm"};
 
-    Camera cam {{13, 2, 3}, {0, 0, 0}, {0, 1, 0}, 0.1f, 10.f, 20.f, 16.f/9.f, 0.f, 1.f};
+    Camera cam {{26, 3, 6}, {0, 2, 0}, {0, 1, 0}, 0.f, 10.f, 20.f};
+//    Camera cam {{278, 278, -800}, {278, 278, 0}, {0, 1, 0}, 0.f, 10.f, 40.f, 1.f};
     const int width = 400;
     const int height = static_cast<int>(width / cam.aspect);
-    const int samples_per_pixel = 100;
-    const int depth = 50;
+    const int samples_per_pixel = 200;
+    const int depth = 25;
 
     HittableList world {};
 
-    auto ground = std::make_shared<Lambertian>(Color{0.8, 0.8, 0.0});
-//    auto left = std::make_shared<Dielectric>(1.5f);
-    auto center  = std::make_shared<Lambertian>(Color{0.1, 0.2, 0.5});
-//    auto right = std::make_shared<Metal>(Color{0.8, 0.6, 0.2}, 0.f);
     auto perlin = std::make_shared<NoiseTexture>(4.f);
     auto perlMat = std::make_shared<Lambertian>(perlin);
+    auto light = std::make_shared<DiffuseLight>(Color{4.f});
 
-    auto earth = std::make_shared<ImageTexture>("earthmap.jpg");
-    auto earthMat = std::make_shared<Lambertian>(earth);
+    using Axis::X, Axis::Y, Axis::Z;
+    world.add(std::make_shared<Sphere>(Vec3{0, -1000, 0}, 1000, perlMat));
+    world.add(std::make_shared<Sphere>(Vec3{0, 2, 0}, 2, perlMat));
+    world.add(std::make_shared<Rectangle<X, Y>>(3, 1, 5, 3, -2, light));
 
-//    world.add(std::make_shared<Sphere>(Vec3{-1.f, 0.f, -1.f}, 0.5f, left));
-//    world.add(std::make_shared<Sphere>(Vec3{-1.f, 0.f, -1.f}, -0.45f, left));
-    world.add(std::make_shared<Sphere>(Vec3{6.f, 1.f, 1.f}, 1.f, earthMat));
-//    world.add(std::make_shared<Sphere>(Vec3{1.f, 0.f, -1.f}, 0.5f, right));
-//    world.add(std::make_shared<Sphere>(Vec3{0.f, -1000.f, 0.f}, 1000.f, perlMat));
+//    auto red = std::make_shared<Lambertian>(Color{0.65, 0.05, 0.05});
+//    auto white = std::make_shared<Lambertian>(Color{0.73, 0.73, 0.73});
+//    auto green = std::make_shared<Lambertian>(Color{0.12, 0.45, 0.15});
+//    auto light = std::make_shared<DiffuseLight>(Color{15, 15, 15});
+//
+//    using Axis::X, Axis::Y, Axis::Z;
+//    world.add(std::make_shared<Rectangle<Y, Z>>(0, 0, 555, 555, 555, green));
+//    world.add(std::make_shared<Rectangle<Y, Z>>(0, 0, 555, 555, 0, red));
+//    world.add(std::make_shared<Rectangle<X, Z>>(213, 227, 343, 332, 554, light));
+//    world.add(std::make_shared<Rectangle<X, Z>>(0, 0, 555, 555, 0, white));
+//    world.add(std::make_shared<Rectangle<X, Z>>(0, 0, 555, 555, 555, white));
+//    world.add(std::make_shared<Rectangle<X, Y>>(0, 0, 555, 555, 555, white));
 
     world = HittableList{std::make_shared<BVHnode>(world)};
 
@@ -130,7 +143,7 @@ int main()
                 auto u = (i + random_float()) / (width - 1);
                 auto v = (j + random_float()) / (height - 1);
 
-                pixel_Color += ray_color(cam.ray(u, v), world, depth);
+                pixel_Color += ray_color(cam.ray(u, v), {}, world, depth);
             }
 
             write_Color(f, pixel_Color, samples_per_pixel);

@@ -22,7 +22,7 @@ namespace Ilya
     bool Lambertian::scatter(const Ray& in, Ray& out, Color& attenuation,
                              const HitRecord& rec) const
     {
-        // Lambertian diffusion : contrary to specular reflection,
+        // Lambertian diffusion: contrary to specular reflection,
         // where the ray reflects off the surface at a precise angle,
         // diffuse reflection has rays scatter at many different
         // angles. Lambertian diffusion is the ideal case of diffuse

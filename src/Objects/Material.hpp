@@ -12,6 +12,11 @@ namespace Ilya
     {
         public:
 
+            virtual Color emitted(float u, float v, const Vec3& p) const
+            {
+                return {};
+            }
+
             virtual bool scatter(const Ray& in, Ray& out, Color& attenuation, const HitRecord& rec) const = 0;
     };
 
@@ -62,6 +67,30 @@ namespace Ilya
                 r0 *= r0;
 
                 return r0 + (1.f - r0)*std::pow(1 - cos, 5);
+            }
+    };
+
+    class DiffuseLight: public Material
+    {
+        public:
+
+            std::shared_ptr<Texture> emitter;
+
+            explicit DiffuseLight(const std::shared_ptr<Texture>& emitter):
+                emitter(emitter) {}
+
+            explicit DiffuseLight(const Color& c):
+                emitter(std::make_shared<SolidColor>(c)) {}
+
+            virtual bool scatter(const Ray& in, Ray& out, Color& attenuation,
+                                 const HitRecord& rec) const override
+            {
+                return false;
+            }
+
+            virtual Color emitted(float u, float v, const Vec3& p) const override
+            {
+                return emitter->val(u, v, p);
             }
     };
 }
