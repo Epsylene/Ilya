@@ -23,10 +23,8 @@ namespace Ilya
 
     inline float random_float(float min = 0.f, float max = 1.f)
     {
-        static std::uniform_real_distribution<float> distr(min, max);
-        static std::mt19937 gen;
-
-        return distr(gen);
+        float r = rand() / (RAND_MAX + 1.0);
+        return min + (max - min)*r;
     }
 
     inline int random_int(int min, int max)

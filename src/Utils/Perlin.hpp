@@ -15,12 +15,12 @@ namespace Ilya
             {
                 for (int i = 0; i < pt_count; ++i)
                 {
-                    ranvec.emplace_back(Vec3::random(-1.f, 1.f));
+                    ranvec.emplace_back(unit(Vec3::random(-1.f, 1.f)));
                 }
 
-                permX = gen_perm();
-                permY = gen_perm();
-                permZ = gen_perm();
+                gen_perm(permX);
+                gen_perm(permY);
+                gen_perm(permZ);
             }
 
             float noise(const Vec3& p) const
@@ -97,17 +97,15 @@ namespace Ilya
             std::vector<Vec3> ranvec {};
             std::vector<int> permX {}, permY {}, permZ {};
 
-            static std::vector<int> gen_perm()
+            static void gen_perm(std::vector<int>& p)
             {
                 // Fill the vector with the integers from 0 to 255,
                 // then shuffle them using a random engine.
-                std::vector<int> p(pt_count);
+                p.resize(pt_count);
                 std::iota(p.begin(), p.end(), 0);
 
                 auto engine = std::default_random_engine();
                 std::ranges::shuffle(p, engine);
-
-                return p;
             }
 
             static float perlin_interp(Vec3 weight[2][2][2], float u, float v, float w)

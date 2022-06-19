@@ -72,7 +72,7 @@ namespace Ilya
         {
             // A random point inside of a unit sphere is a random vector in
             // a unit cube which has norm less than 1.
-            auto p = Vec3::random(-1,1);
+            auto p = Vec3::random(-1.f, 1.f);
             if (square(p) >= 1)
                 continue;
 

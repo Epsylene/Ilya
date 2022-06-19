@@ -33,7 +33,7 @@ void write_Color(std::ofstream& out, const Color& color, int samples_per_pixel)
         << static_cast<int>(256 * std::clamp(sc_Color.b, 0.f, 0.999f)) << '\n';
 }
 
-Color ray_color(const Ray& r, const Color& background, const HittableList& world, int depth)
+Color ray_color(const Ray& r, const Color& background, const Hittable& world, int depth)
 {
     HitRecord rec {};
 
@@ -83,36 +83,26 @@ int main()
 {
     std::ofstream f {"../image.ppm"};
 
-    Camera cam {{26, 3, 6}, {0, 2, 0}, {0, 1, 0}, 0.f, 10.f, 20.f};
-//    Camera cam {{278, 278, -800}, {278, 278, 0}, {0, 1, 0}, 0.f, 10.f, 40.f, 1.f};
-    const int width = 400;
+    Camera cam {{0, 0, 16}, {0, 0, 0}, {0, 1, 0}, 0.f, 10.f, 40.f, 1.f};
+    const int width = 200;
     const int height = static_cast<int>(width / cam.aspect);
-    const int samples_per_pixel = 200;
-    const int depth = 25;
+    const int samples_per_pixel = 100;
+    const int depth = 50;
 
     HittableList world {};
 
-    auto perlin = std::make_shared<NoiseTexture>(4.f);
-    auto perlMat = std::make_shared<Lambertian>(perlin);
-    auto light = std::make_shared<DiffuseLight>(Color{4.f});
+    auto white = std::make_shared<Lambertian>(std::make_shared<SolidColor>(Color::White));
+    auto green = std::make_shared<Lambertian>(std::make_shared<SolidColor>(Color::Green));
+    auto red = std::make_shared<Lambertian>(std::make_shared<SolidColor>(Color::Red));
+    auto light = std::make_shared<DiffuseLight>(std::make_shared<SolidColor>(Color{4.f}));
 
     using Axis::X, Axis::Y, Axis::Z;
-    world.add(std::make_shared<Sphere>(Vec3{0, -1000, 0}, 1000, perlMat));
-    world.add(std::make_shared<Sphere>(Vec3{0, 2, 0}, 2, perlMat));
-    world.add(std::make_shared<Rectangle<X, Y>>(3, 1, 5, 3, -2, light));
-
-//    auto red = std::make_shared<Lambertian>(Color{0.65, 0.05, 0.05});
-//    auto white = std::make_shared<Lambertian>(Color{0.73, 0.73, 0.73});
-//    auto green = std::make_shared<Lambertian>(Color{0.12, 0.45, 0.15});
-//    auto light = std::make_shared<DiffuseLight>(Color{15, 15, 15});
-//
-//    using Axis::X, Axis::Y, Axis::Z;
-//    world.add(std::make_shared<Rectangle<Y, Z>>(0, 0, 555, 555, 555, green));
-//    world.add(std::make_shared<Rectangle<Y, Z>>(0, 0, 555, 555, 0, red));
-//    world.add(std::make_shared<Rectangle<X, Z>>(213, 227, 343, 332, 554, light));
-//    world.add(std::make_shared<Rectangle<X, Z>>(0, 0, 555, 555, 0, white));
-//    world.add(std::make_shared<Rectangle<X, Z>>(0, 0, 555, 555, 555, white));
-//    world.add(std::make_shared<Rectangle<X, Y>>(0, 0, 555, 555, 555, white));
+    world.add(std::make_shared<Rectangle<X, Z>>(-4, -4, 4, 4, -4, white));
+    world.add(std::make_shared<Rectangle<X, Z>>(-4, -4, 4, 4, 4, white));
+    world.add(std::make_shared<Rectangle<X, Y>>(-4, -4, 4, 4, -4, white));
+    world.add(std::make_shared<Rectangle<Y, Z>>(-4, -4, 4, 4, -4, green));
+    world.add(std::make_shared<Rectangle<Y, Z>>(-4, -4, 4, 4, 4, red));
+    world.add(std::make_shared<Rectangle<X, Z>>(-1, -1, 1, 1, 3.9, light));
 
     world = HittableList{std::make_shared<BVHnode>(world)};
 
