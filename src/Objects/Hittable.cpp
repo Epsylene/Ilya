@@ -208,7 +208,7 @@ namespace Ilya
         return true;
     }
 
-    template<Axis ax0, Axis ax1> requires (ax0 != ax1)
+    template<Axis ax0, Axis ax1> requires (ax0 < ax1)
     bool Rectangle<ax0, ax1>::hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const
     {
         float t = -1.f;
@@ -262,4 +262,22 @@ namespace Ilya
     template class Rectangle<X, Y>;
     template class Rectangle<X, Z>;
     template class Rectangle<Y, Z>;
+
+    Box::Box(const Vec3& p0, const Vec3& p1, std::shared_ptr<Material> mat):
+        p0(p0), p1(p1)
+    {
+        sides.add(make_shared<Rectangle<X, Y>>(p0.x, p0.y, p1.x, p1.y, p1.z, mat));
+        sides.add(make_shared<Rectangle<X, Y>>(p0.x, p0.y, p1.x, p1.y, p0.z, mat));
+
+        sides.add(make_shared<Rectangle<X, Z>>(p0.x, p0.z, p1.x, p1.z, p1.y, mat));
+        sides.add(make_shared<Rectangle<X, Z>>(p0.x, p0.z, p1.x, p1.z, p0.y, mat));
+
+        sides.add(make_shared<Rectangle<Y, Z>>(p0.y, p0.z, p1.y, p1.z, p1.x, mat));
+        sides.add(make_shared<Rectangle<Y, Z>>(p0.y, p0.z, p1.y, p1.z, p0.x, mat));
+    }
+
+    bool Box::hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const
+    {
+        return sides.hit(r, tmin, tmax, rec);
+    }
 }

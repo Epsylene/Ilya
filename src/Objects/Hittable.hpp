@@ -130,7 +130,7 @@ namespace Ilya
     template<Axis ax0, Axis ax1>
     concept YZ = (ax0 == Axis::Y && ax1 == Axis::Z);
 
-    template<Axis ax0, Axis ax1> requires (ax0 != ax1)
+    template<Axis ax0, Axis ax1> requires (ax0 < ax1)
     class Rectangle: public Hittable
     {
         public:
@@ -143,6 +143,7 @@ namespace Ilya
                       r0(r0), s0(s0), r1(r1), s1(s1), k(k), material(mat) {}
 
             virtual bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
+
             virtual bool bounding_box(float t0, float t1, BoundingBox& box) const override
             {
                 if constexpr(XY<ax0, ax1>)
@@ -151,6 +152,25 @@ namespace Ilya
                     box = {{r0, k - 0.0001f, s0 }, {r1, k + 0.0001f, s1}};
                 else if constexpr(YZ<ax0, ax1>)
                     box = {{k - 0.0001f, r0, s0 }, {k + 0.0001f, r1, s1}};
+
+                return true;
+            }
+    };
+
+    class Box: public Hittable
+    {
+        public:
+
+            Vec3 p0, p1;
+            HittableList sides;
+
+            Box(const Vec3& p0, const Vec3& p1, std::shared_ptr<Material> mat);
+
+            virtual bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
+
+            virtual bool bounding_box(float t0, float t1, BoundingBox& box) const override
+            {
+                box = {p0, p1};
 
                 return true;
             }
