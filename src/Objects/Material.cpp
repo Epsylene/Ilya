@@ -97,4 +97,16 @@ namespace Ilya
 
         return true;
     }
+
+    bool Isotropic::scatter(const Ray& in, Ray& out, Color& attenuation,
+                            const HitRecord& rec) const
+    {
+        // In an isotropic material, rays are scattered off uniformly
+        // in all directions: thus the direction of the scattered ray
+        // is simply a point in the unit sphere.
+        out = {rec.p, rand_in_unit_sphere(), in.cast_time};
+        attenuation = albedo->val(rec.u, rec.v, rec.p);
+
+        return true;
+    }
 }

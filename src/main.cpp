@@ -105,15 +105,16 @@ int main()
     world.add(std::make_shared<Rectangle<X, Z>>(0, 0, 555, 555, 555, white));
     world.add(std::make_shared<Rectangle<X, Y>>(0, 0, 555, 555, 555, white));
 
-    std::shared_ptr<Hittable> box1 = make_shared<Box>(Vec3{0, 0, 0}, Vec3{165, 330, 165}, white);
+    std::shared_ptr<Hittable> box1 = std::make_shared<Box>(Vec3{0, 0, 0}, Vec3{165, 330, 165}, white);
     box1 = std::make_shared<Rotate<Y>>(box1, 15);
     box1 = std::make_shared<Translate>(box1, Vec3{265,0,295});
-    world.add(box1);
 
-    std::shared_ptr<Hittable> box2 = make_shared<Box>(Vec3{0,0,0}, Vec3{165,165,165}, white);
+    std::shared_ptr<Hittable> box2 = std::make_shared<Box>(Vec3{0,0,0}, Vec3{165,165,165}, white);
     box2 = std::make_shared<Rotate<Y>>(box2, -18);
     box2 = std::make_shared<Translate>(box2, Vec3{130,0,65});
-    world.add(box2);
+
+    world.add(std::make_shared<ConstantMedium>(box1, Color{0,0,0}, 0.01));
+    world.add(std::make_shared<ConstantMedium>(box2, Color{1,1,1}, 0.01));
 
     world = HittableList{std::make_shared<BVHnode>(world)};
 

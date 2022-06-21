@@ -93,4 +93,20 @@ namespace Ilya
                 return emitter->val(u, v, p);
             }
     };
+
+    class Isotropic: public Material
+    {
+        public:
+
+            std::shared_ptr<Texture> albedo;
+
+            explicit Isotropic(const Color& c):
+                albedo(std::make_shared<SolidColor>(c)) {}
+
+            Isotropic(const std::shared_ptr<Texture>& tex):
+                albedo(tex) {}
+
+            virtual bool scatter(const Ray& in, Ray& out, Color& attenuation,
+                                 const HitRecord& rec) const override;
+    };
 }

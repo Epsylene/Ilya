@@ -175,4 +175,27 @@ namespace Ilya
                 return true;
             }
     };
+
+    class ConstantMedium: public Hittable
+    {
+        public:
+
+            float density;
+            std::shared_ptr<Hittable> boundary;
+            std::shared_ptr<Material> phase_func;
+
+            ConstantMedium(const std::shared_ptr<Hittable>& boundary,
+                           const std::shared_ptr<Texture>& tex, float density):
+                           boundary(boundary), phase_func(std::make_shared<Isotropic>(tex)), density(density) {}
+
+            ConstantMedium(std::shared_ptr<Hittable> boundary, const Color& c, float density):
+                    ConstantMedium(boundary, std::make_shared<SolidColor>(c), density) {}
+
+            virtual bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
+
+            virtual bool bounding_box(float t0, float t1, BoundingBox& box) const override
+            {
+                return boundary->bounding_box(t0, t1, box);
+            }
+    };
 }

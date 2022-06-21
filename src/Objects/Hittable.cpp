@@ -280,4 +280,52 @@ namespace Ilya
     {
         return sides.hit(r, tmin, tmax, rec);
     }
+
+    bool ConstantMedium::hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const
+    {
+        // Raytracing what is known as volumes or participating media
+        // (like fog or smoke) looks tricky, mainly because rays are
+        // supposed to hit a volume, not a surface. One technique
+        // consists in doing things probabilistically: once the ray
+        // is inside the volume, give it a certain distance until it
+        // scatters off it. We first need to check if the ray is indeed
+        // inside the volume: this is done with two recorders, the first
+        // of which will record the "entry point" of the ray in the
+        // volume and the second the "leaving point" of the ray was
+        // it not affected by the scattering.
+        HitRecord rec1, rec2;
+
+        if(!boundary->hit(r, -infinity, infinity, rec1)) return false;
+        if(!boundary->hit(r, rec1.t + 0.0001f, infinity, rec2)) return false;
+
+        if(rec1.t < tmin) rec1.t = tmin;
+        if(rec2.t > tmax) rec2.t = tmax;
+        if(rec1.t >= rec2.t) return false;
+        if(rec1.t < 0.f) rec1.t = 0.f;
+
+        // Next ww need to compute the actual distance that the ray
+        // travels inside the volume. For any ray entering the volume,
+        // the probability that it scatters after a small distance dl
+        // is dP = C.dl, where C is the density of the volume. However,
+        // because this volume is comprised of volatile media, like fog
+        // or mist, this density can be written as C = D.P, where D is
+        // the actual (physical) density of the volume and P the
+        // probability of "finding" the matter in the distance dl. Then
+        // we get dP = D.P.dl, which is the same as dP/P = D.dl and after
+        // integrating ln(P) = D.l, which gives us the distance.
+        const auto ray_length = length(r.dir);
+        const auto dist_in_boundary = (rec2.t - rec1.t) * ray_length;
+        const auto hit_distance = -std::log(random_float())/density;
+
+        if(hit_distance > dist_in_boundary)
+            return false;
+
+        rec.t = rec1.t + hit_distance/ray_length;
+        rec.p = r.at(rec.t);
+        rec.normal = {1.f, 0.f, 0.f};
+        rec.frontFace = true;
+        rec.material = phase_func;
+
+        return true;
+    }
 }
