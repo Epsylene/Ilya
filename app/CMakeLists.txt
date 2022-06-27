@@ -5,6 +5,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin/${CMAKE_BUILD
 
 add_executable(Ilya_app app.cpp)
 
+add_definitions(-DGLFW_INCLUDE_NONE)
+
 target_link_libraries(Ilya_app Ilya)
 target_include_directories(Ilya_app PUBLIC ${ILYA_INCLUDE_DIRS})
 target_compile_options(Ilya_app PUBLIC -O3 -fno-math-errno)

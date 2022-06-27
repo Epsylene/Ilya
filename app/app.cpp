@@ -6,6 +6,9 @@
 #include "Objects/Hittable.hpp"
 #include "Objects/Instances.hpp"
 #include "Objects/Camera.hpp"
+#include "Core/Application.hpp"
+
+#include "imgui.h"
 
 using namespace Ilya;
 
@@ -80,77 +83,93 @@ Color ray_color(const Ray& r, const Color& background, const Hittable& world, in
     return (1-m)*Color(1.f) + m*Color(0.5f, 0.7f, 1.f);
 }
 
+class AppLayer: public Layer
+{
+    public:
+
+        virtual void onUIRender() override
+        {
+            ImGui::Begin("Hello");
+            ImGui::Button("Button");
+            ImGui::End();
+        }
+};
+
 int main()
 {
-    std::ofstream f {"../image.ppm"};
+    std::shared_ptr<Application> app = std::make_shared<Application>();
+    app->pushLayer<AppLayer>();
+    app->run();
 
-    Camera cam {{278, 278, -800}, {278, 278, 0}, {0, 1, 0}, 0.f, 10.f, 40.f, 1.f};
-    const int width = 200;
-    const int height = static_cast<int>(width / cam.aspect);
-    const int samples_per_pixel = 200;
-    const int depth = 50;
-
-    HittableList world {};
-
-    auto white = std::make_shared<Lambertian>(std::make_shared<SolidColor>(Color{0.73f}));
-    auto green = std::make_shared<Lambertian>(std::make_shared<SolidColor>(Color{0.12f, 0.45f, 0.15f}));
-    auto red = std::make_shared<Lambertian>(std::make_shared<SolidColor>(Color{0.65f, 0.05f, 0.05f}));
-    auto light = std::make_shared<DiffuseLight>(std::make_shared<SolidColor>(Color{15.f}));
-
-    using Axis::X, Axis::Y, Axis::Z;
-    world.add(std::make_shared<Rectangle<Y, Z>>(0, 0, 555, 555, 555, green));
-    world.add(std::make_shared<Rectangle<Y, Z>>(0, 0, 555, 555, 0, red));
-    world.add(std::make_shared<Rectangle<X, Z>>(213, 227, 343, 332, 554, light));
-    world.add(std::make_shared<Rectangle<X, Z>>(0, 0, 555, 555, 0, white));
-    world.add(std::make_shared<Rectangle<X, Z>>(0, 0, 555, 555, 555, white));
-    world.add(std::make_shared<Rectangle<X, Y>>(0, 0, 555, 555, 555, white));
-
-    std::shared_ptr<Hittable> box1 = std::make_shared<Box>(Vec3{0, 0, 0}, Vec3{165, 330, 165}, white);
-    box1 = std::make_shared<Rotate<Y>>(box1, 15);
-    box1 = std::make_shared<Translate>(box1, Vec3{265,0,295});
-
-    std::shared_ptr<Hittable> box2 = std::make_shared<Box>(Vec3{0,0,0}, Vec3{165,165,165}, white);
-    box2 = std::make_shared<Rotate<Y>>(box2, -18);
-    box2 = std::make_shared<Translate>(box2, Vec3{130,0,65});
-
-    world.add(std::make_shared<ConstantMedium>(box1, Color{0,0,0}, 0.01));
-    world.add(std::make_shared<ConstantMedium>(box2, Color{1,1,1}, 0.01));
-
-    world = HittableList{std::make_shared<BVHnode>(world)};
-
-    // Outputting an image file: we use a PPM file, which is a
-    // simple format looking like
-    //
-    //      P3
-    //      [columns] [rows]
-    //      [max_Color_value]
-    //      [pixel00] [pixel01] ... [pixel0n]
-    //      [pixel10] ...
-    //      ...
-    //
-    f << "P3\n" << width << ' ' << height
-        << "\n255\n";
-
-    for (int j = height - 1; j >= 0; --j)
-    {
-        std::cout << "Scanlines remaining: " << j << "\n";
-
-        for (int i = 0; i < width; ++i)
-        {
-            Color pixel_Color {};
-
-            for (int s = 0; s < samples_per_pixel; ++s)
-            {
-                // Colors are normalized to the range [0,1] by convention
-                auto u = (i + random_float()) / (width - 1);
-                auto v = (j + random_float()) / (height - 1);
-
-                pixel_Color += ray_color(cam.ray(u, v), {}, world, depth);
-            }
-
-            write_Color(f, pixel_Color, samples_per_pixel);
-        }
-    }
+////    std::ofstream f {"../image.ppm"};
+////
+////    Camera cam {{278, 278, -800}, {278, 278, 0}, {0, 1, 0}, 0.f, 10.f, 40.f, 1.f};
+////    const int width = 200;
+////    const int height = static_cast<int>(width / cam.aspect);
+////    const int samples_per_pixel = 200;
+////    const int depth = 50;
+////
+////    HittableList world {};
+////
+////    auto white = std::make_shared<Lambertian>(std::make_shared<SolidColor>(Color{0.73f}));
+////    auto green = std::make_shared<Lambertian>(std::make_shared<SolidColor>(Color{0.12f, 0.45f, 0.15f}));
+////    auto red = std::make_shared<Lambertian>(std::make_shared<SolidColor>(Color{0.65f, 0.05f, 0.05f}));
+////    auto light = std::make_shared<DiffuseLight>(std::make_shared<SolidColor>(Color{15.f}));
+////
+////    using Axis::X, Axis::Y, Axis::Z;
+////    world.add(std::make_shared<Rectangle<Y, Z>>(0, 0, 555, 555, 555, green));
+////    world.add(std::make_shared<Rectangle<Y, Z>>(0, 0, 555, 555, 0, red));
+////    world.add(std::make_shared<Rectangle<X, Z>>(213, 227, 343, 332, 554, light));
+////    world.add(std::make_shared<Rectangle<X, Z>>(0, 0, 555, 555, 0, white));
+////    world.add(std::make_shared<Rectangle<X, Z>>(0, 0, 555, 555, 555, white));
+////    world.add(std::make_shared<Rectangle<X, Y>>(0, 0, 555, 555, 555, white));
+////
+////    std::shared_ptr<Hittable> box1 = std::make_shared<Box>(Vec3{0, 0, 0}, Vec3{165, 330, 165}, white);
+////    box1 = std::make_shared<Rotate<Y>>(box1, 15);
+////    box1 = std::make_shared<Translate>(box1, Vec3{265,0,295});
+////
+////    std::shared_ptr<Hittable> box2 = std::make_shared<Box>(Vec3{0,0,0}, Vec3{165,165,165}, white);
+////    box2 = std::make_shared<Rotate<Y>>(box2, -18);
+////    box2 = std::make_shared<Translate>(box2, Vec3{130,0,65});
+////
+////    world.add(std::make_shared<ConstantMedium>(box1, Color{0,0,0}, 0.01));
+////    world.add(std::make_shared<ConstantMedium>(box2, Color{1,1,1}, 0.01));
+////
+////    world = HittableList{std::make_shared<BVHnode>(world)};
+//
+//    // Outputting an image file: we use a PPM file, which is a
+//    // simple format looking like
+//    //
+//    //      P3
+//    //      [columns] [rows]
+//    //      [max_Color_value]
+//    //      [pixel00] [pixel01] ... [pixel0n]
+//    //      [pixel10] ...
+//    //      ...
+//    //
+//    f << "P3\n" << width << ' ' << height
+//        << "\n255\n";
+//
+//    for (int j = height - 1; j >= 0; --j)
+//    {
+//        std::cout << "Scanlines remaining: " << j << "\n";
+//
+//        for (int i = 0; i < width; ++i)
+//        {
+//            Color pixel_Color {};
+//
+//            for (int s = 0; s < samples_per_pixel; ++s)
+//            {
+//                // Colors are normalized to the range [0,1] by convention
+//                auto u = (i + random_float()) / (width - 1);
+//                auto v = (j + random_float()) / (height - 1);
+//
+//                pixel_Color += ray_color(cam.ray(u, v), {}, world, depth);
+//            }
+//
+//            write_Color(f, pixel_Color, samples_per_pixel);
+//        }
+//    }
 
     return 0;
 }

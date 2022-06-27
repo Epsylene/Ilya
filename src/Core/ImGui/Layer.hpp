@@ -3,10 +3,10 @@
 
 namespace Ilya
 {
-    class Application
+    class Layer
     {
         public:
 
-            Application();
+            virtual void onUIRender() {};
     };
 }
