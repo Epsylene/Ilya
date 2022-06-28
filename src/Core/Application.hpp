@@ -8,6 +8,8 @@
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
 
+void check_vk_result(VkResult err);
+
 namespace Ilya
 {
     struct WindowData
@@ -32,6 +34,13 @@ namespace Ilya
 
             void run();
             void close();
+
+            static VkDevice getDevice();
+            static VkPhysicalDevice getPhysicalDevice();
+            static VkCommandBuffer getCommandBuffer(bool begin);
+
+            static void submit_ressource_free(std::function<void()>&& func);
+            static void flush_command_buffer(VkCommandBuffer commandBuffer);
 
         private:
 

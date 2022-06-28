@@ -17,6 +17,8 @@ namespace Ilya
             Vec3 orig, llc, horizontal, vertical;
             Vec3 u, v, w;
 
+            Camera() = default;
+
             Camera(Vec3 from, Vec3 at, Vec3 up, float aperture, float focus_dist, float fov, float aspect = 16.f/9.f, float t_open = 0.f, float t_close = 0.f):
                     aspect(aspect), lens(aperture / 2.f), t_open(t_open), t_close(t_close)
             {

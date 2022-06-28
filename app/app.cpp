@@ -7,35 +7,11 @@
 #include "Objects/Instances.hpp"
 #include "Objects/Camera.hpp"
 #include "Core/Application.hpp"
+#include "Core/Image.hpp"
 
 #include "imgui.h"
 
 using namespace Ilya;
-
-void write_Color(std::ofstream& out, const Color& color, int samples_per_pixel)
-{
-    // Colors are scaled inversely proportional to the samples per
-    // pixel: antialiasing works by taking a pixel and sampling a great
-    // number of neighboring pixels into it; this gives a blurry effect
-    // at the edges, where colours change rapidly from one pixel to
-    // another. However, because of the sampling, we have to tone down
-    // each pixel's Color, or else the resulting antialised pixel will
-    // be way brighter than it actually is.
-    // However, our image is darker than it should be, for another
-    // reason. Human eyes perceive light in a non-linear fashion,
-    // following an approximate power function. To account for this,
-    // software perform what is known as gamma correction, elevating
-    // the input at a power that lies tipically in the range 1.8 to
-    // 2.2. Because image viewers expect images to have been
-    // gamma-corrected, we need first to inverse gamma-correct them;
-    // supposing that gamma = 2, we need to elevate to the power 1/2.
-    auto scale = 1.f/samples_per_pixel;
-    Color sc_Color = sqrt(color * scale);
-
-    out << static_cast<int>(256 * std::clamp(sc_Color.r, 0.f, 0.999f)) << ' '
-        << static_cast<int>(256 * std::clamp(sc_Color.g, 0.f, 0.999f)) << ' '
-        << static_cast<int>(256 * std::clamp(sc_Color.b, 0.f, 0.999f)) << '\n';
-}
 
 Color ray_color(const Ray& r, const Color& background, const Hittable& world, int depth)
 {
@@ -87,12 +63,116 @@ class AppLayer: public Layer
 {
     public:
 
+        AppLayer()
+        {
+            camera = {{278, 278, -800}, {278, 278, 0}, {0, 1, 0}, 0.f, 10.f, 40.f, 1.f};
+
+            auto white = std::make_shared<Lambertian>(std::make_shared<SolidColor>(Color{0.73f}));
+            auto green = std::make_shared<Lambertian>(std::make_shared<SolidColor>(Color{0.12f, 0.45f, 0.15f}));
+            auto red = std::make_shared<Lambertian>(std::make_shared<SolidColor>(Color{0.65f, 0.05f, 0.05f}));
+            auto light = std::make_shared<DiffuseLight>(std::make_shared<SolidColor>(Color{15.f}));
+
+            using Axis::X, Axis::Y, Axis::Z;
+            world.add(std::make_shared<Rectangle<Y, Z>>(0, 0, 555, 555, 555, green));
+            world.add(std::make_shared<Rectangle<Y, Z>>(0, 0, 555, 555, 0, red));
+            world.add(std::make_shared<Rectangle<X, Z>>(213, 227, 343, 332, 554, light));
+            world.add(std::make_shared<Rectangle<X, Z>>(0, 0, 555, 555, 0, white));
+            world.add(std::make_shared<Rectangle<X, Z>>(0, 0, 555, 555, 555, white));
+            world.add(std::make_shared<Rectangle<X, Y>>(0, 0, 555, 555, 555, white));
+
+            std::shared_ptr<Hittable> box1 = std::make_shared<Box>(Vec3{0, 0, 0}, Vec3{165, 330, 165}, white);
+            box1 = std::make_shared<Rotate<Y>>(box1, 15);
+            box1 = std::make_shared<Translate>(box1, Vec3{265,0,295});
+
+            std::shared_ptr<Hittable> box2 = std::make_shared<Box>(Vec3{0,0,0}, Vec3{165,165,165}, white);
+            box2 = std::make_shared<Rotate<Y>>(box2, -18);
+            box2 = std::make_shared<Translate>(box2, Vec3{130,0,65});
+
+            world.add(std::make_shared<ConstantMedium>(box1, Color{0,0,0}, 0.01));
+            world.add(std::make_shared<ConstantMedium>(box2, Color{1,1,1}, 0.01));
+
+            world = HittableList{std::make_shared<BVHnode>(world)};
+        }
+
         virtual void onUIRender() override
         {
-            ImGui::Begin("Hello");
-            ImGui::Button("Button");
+            ImGui::Begin("Settings");
+            if(ImGui::Button("Render"))
+                render();
+
+            ImGui::End();
+
+            ImGui::Begin("Viewport");
+
+            viewportWidth = ImGui::GetContentRegionAvail().x;
+            viewportHeight = ImGui::GetContentRegionAvail().y;
+
+            if(image)
+                ImGui::Image(image->descriptorSet, {(float)image->width, (float)image->height});
             ImGui::End();
         }
+
+        void render()
+        {
+            if(!image || viewportWidth != image->width || viewportHeight != image->height)
+            {
+                image = std::make_shared<Image>(viewportWidth, viewportHeight, ImageFormat::RGBA);
+                delete[] imageData;
+                imageData = new uint32_t[size_t(viewportWidth * viewportHeight)];
+            }
+
+            for (int j = viewportHeight - 1; j >= 0; --j)
+            {
+                for (int i = 0; i < viewportWidth; ++i)
+                {
+                    Color pixel_Color {};
+
+                    for (int s = 0; s < samples_per_pixel; ++s)
+                    {
+                        // Colors are normalized to the range [0,1] by convention
+                        auto u = (i + random_float()) / (viewportWidth - 1);
+                        auto v = (j + random_float()) / (viewportHeight - 1);
+
+//                        pixel_Color += ray_color(camera.ray(u, v), {}, world, depth);
+                    }
+
+                    // Colors are scaled inversely proportional to the samples per
+                    // pixel: antialiasing works by taking a pixel and sampling a great
+                    // number of neighboring pixels into it; this gives a blurry effect
+                    // at the edges, where colours change rapidly from one pixel to
+                    // another. However, because of the sampling, we have to tone down
+                    // each pixel's Color, or else the resulting antialised pixel will
+                    // be way brighter than it actually is.
+                    // However, our image is darker than it should be, for another
+                    // reason. Human eyes perceive light in a non-linear fashion,
+                    // following an approximate power function. To account for this,
+                    // software perform what is known as gamma correction, elevating
+                    // the input at a power that lies tipically in the range 1.8 to
+                    // 2.2. Because image viewers expect images to have been
+                    // gamma-corrected, we need first to inverse gamma-correct them;
+                    // supposing that gamma = 2, we need to elevate to the power 1/2.
+                    auto scale = 1.f/samples_per_pixel;
+                    Color sc_Color = sqrt(pixel_Color * scale);
+
+                    auto r = random_int(0, 255);
+                    auto g = random_int(0, 255);
+                    auto b = random_int(0, 255);
+                    imageData[i + j*viewportWidth] = 0xff000000 | (b << 16) | (g << 8) | r;
+                }
+            }
+
+            image->set_data(imageData);
+        }
+
+    private:
+
+        int samples_per_pixel = 10, depth = 2;
+        Camera camera {};
+        HittableList world {};
+
+        uint32_t viewportWidth = 0, viewportHeight = 0;
+        std::shared_ptr<Image> image;
+        uint32_t* imageData = nullptr;
 };
 
 int main()
@@ -100,76 +180,6 @@ int main()
     std::shared_ptr<Application> app = std::make_shared<Application>();
     app->pushLayer<AppLayer>();
     app->run();
-
-////    std::ofstream f {"../image.ppm"};
-////
-////    Camera cam {{278, 278, -800}, {278, 278, 0}, {0, 1, 0}, 0.f, 10.f, 40.f, 1.f};
-////    const int width = 200;
-////    const int height = static_cast<int>(width / cam.aspect);
-////    const int samples_per_pixel = 200;
-////    const int depth = 50;
-////
-////    HittableList world {};
-////
-////    auto white = std::make_shared<Lambertian>(std::make_shared<SolidColor>(Color{0.73f}));
-////    auto green = std::make_shared<Lambertian>(std::make_shared<SolidColor>(Color{0.12f, 0.45f, 0.15f}));
-////    auto red = std::make_shared<Lambertian>(std::make_shared<SolidColor>(Color{0.65f, 0.05f, 0.05f}));
-////    auto light = std::make_shared<DiffuseLight>(std::make_shared<SolidColor>(Color{15.f}));
-////
-////    using Axis::X, Axis::Y, Axis::Z;
-////    world.add(std::make_shared<Rectangle<Y, Z>>(0, 0, 555, 555, 555, green));
-////    world.add(std::make_shared<Rectangle<Y, Z>>(0, 0, 555, 555, 0, red));
-////    world.add(std::make_shared<Rectangle<X, Z>>(213, 227, 343, 332, 554, light));
-////    world.add(std::make_shared<Rectangle<X, Z>>(0, 0, 555, 555, 0, white));
-////    world.add(std::make_shared<Rectangle<X, Z>>(0, 0, 555, 555, 555, white));
-////    world.add(std::make_shared<Rectangle<X, Y>>(0, 0, 555, 555, 555, white));
-////
-////    std::shared_ptr<Hittable> box1 = std::make_shared<Box>(Vec3{0, 0, 0}, Vec3{165, 330, 165}, white);
-////    box1 = std::make_shared<Rotate<Y>>(box1, 15);
-////    box1 = std::make_shared<Translate>(box1, Vec3{265,0,295});
-////
-////    std::shared_ptr<Hittable> box2 = std::make_shared<Box>(Vec3{0,0,0}, Vec3{165,165,165}, white);
-////    box2 = std::make_shared<Rotate<Y>>(box2, -18);
-////    box2 = std::make_shared<Translate>(box2, Vec3{130,0,65});
-////
-////    world.add(std::make_shared<ConstantMedium>(box1, Color{0,0,0}, 0.01));
-////    world.add(std::make_shared<ConstantMedium>(box2, Color{1,1,1}, 0.01));
-////
-////    world = HittableList{std::make_shared<BVHnode>(world)};
-//
-//    // Outputting an image file: we use a PPM file, which is a
-//    // simple format looking like
-//    //
-//    //      P3
-//    //      [columns] [rows]
-//    //      [max_Color_value]
-//    //      [pixel00] [pixel01] ... [pixel0n]
-//    //      [pixel10] ...
-//    //      ...
-//    //
-//    f << "P3\n" << width << ' ' << height
-//        << "\n255\n";
-//
-//    for (int j = height - 1; j >= 0; --j)
-//    {
-//        std::cout << "Scanlines remaining: " << j << "\n";
-//
-//        for (int i = 0; i < width; ++i)
-//        {
-//            Color pixel_Color {};
-//
-//            for (int s = 0; s < samples_per_pixel; ++s)
-//            {
-//                // Colors are normalized to the range [0,1] by convention
-//                auto u = (i + random_float()) / (width - 1);
-//                auto v = (j + random_float()) / (height - 1);
-//
-//                pixel_Color += ray_color(cam.ray(u, v), {}, world, depth);
-//            }
-//
-//            write_Color(f, pixel_Color, samples_per_pixel);
-//        }
-//    }
 
     return 0;
 }

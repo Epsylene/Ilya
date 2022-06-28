@@ -30,7 +30,7 @@ add_subdirectory(lib/glfw)
 find_package(Vulkan REQUIRED)
 
 # LIBRARY #
-add_library(Ilya SHARED src/Utils/Vector4.hpp src/Utils/Color.cpp src/Objects/Ray.hpp src/Utils/Vector3.cpp src/Objects/Hittable.cpp src/Objects/Hittable.hpp src/Ilya.hpp src/Objects/Camera.hpp src/Objects/Material.cpp src/Objects/Material.hpp src/Objects/BoundingBox.hpp src/Objects/BoundingBox.cpp src/Objects/Texture.hpp src/Utils/Perlin.hpp src/Objects/Instances.cpp src/Objects/Instances.hpp src/Core/Application.cpp src/Core/Application.hpp src/ilpch.hpp src/Core/ImGui/ImGuiBuild.cpp src/Core/ImGui/Layer.hpp)
+add_library(Ilya SHARED src/Utils/Vector4.hpp src/Utils/Color.cpp src/Objects/Ray.hpp src/Utils/Vector3.cpp src/Objects/Hittable.cpp src/Objects/Hittable.hpp src/Ilya.hpp src/Objects/Camera.hpp src/Objects/Material.cpp src/Objects/Material.hpp src/Objects/BoundingBox.hpp src/Objects/BoundingBox.cpp src/Objects/Texture.hpp src/Utils/Perlin.hpp src/Objects/Instances.cpp src/Objects/Instances.hpp src/Core/Application.cpp src/Core/Application.hpp src/ilpch.hpp src/Core/ImGui/ImGuiBuild.cpp src/Core/ImGui/Layer.hpp src/Core/Image.cpp src/Core/Image.hpp)
 
 target_link_libraries(Ilya PUBLIC stb_image glfw Vulkan::Vulkan imgui)
 
