@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "Ilya.hpp"
+#include "Core.hpp"
 #include "Vector3.hpp"
 
 namespace Ilya

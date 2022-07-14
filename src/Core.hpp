@@ -1,22 +1,17 @@
 
 #pragma once
 
-#include <cmath>
-#include <memory>
-#include <vector>
-#include <fstream>
-#include <iostream>
-#include <limits>
-#include <random>
-#include <algorithm>
-#include <filesystem>
+#include "ilpch.hpp"
 
 #define macro_str(a) #a
 #define xmacro_str(a) macro_str(a)
 
+namespace fs = std::filesystem;
+
 namespace Ilya
 {
     static const std::filesystem::path res_path { xmacro_str(ILYA_RES_DIR) };
+    static const std::filesystem::path app_path { xmacro_str(ILYA_APP_DIR) };
 
     static const float infinity = std::numeric_limits<float>::infinity();
     static const float pi = static_cast<float>(M_PI);

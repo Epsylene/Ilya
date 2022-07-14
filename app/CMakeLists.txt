@@ -9,6 +9,8 @@ target_link_libraries(Ilya_app Ilya)
 target_include_directories(Ilya_app PUBLIC ${ILYA_INCLUDE_DIRS})
 target_compile_options(Ilya_app PUBLIC -O3 -fno-math-errno)
 
+target_compile_definitions(Ilya PUBLIC -DILYA_APP_DIR=${CMAKE_CURRENT_SOURCE_DIR})
+
 set(ILYA_BIN_DIR ${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE})
 
 add_custom_command(
