@@ -11,8 +11,8 @@ using namespace Ilya;
 int main()
 {
     Camera cam {{278, 278, -800}, {278, 278, 0}, {0, 1, 0}, 0.f, 10.f, 40.f, 1.f};
-    const int width = 200;
-    const int height = static_cast<int>(width / cam.aspect);
+    const uint32_t width = 200;
+    const uint32_t height = static_cast<int>(width / cam.aspect);
     const int samples_per_pixel = 400;
     const int depth = 25;
 
@@ -44,7 +44,7 @@ int main()
 
     world = HittableList{std::make_shared<BVHnode>(world)};
 
-    Renderer r {Image{width, (uint32_t)height}, world, samples_per_pixel, depth};
+    Renderer r {Image{width, height}, world, samples_per_pixel, depth};
     r.render(cam);
 
     return 0;
