@@ -4,6 +4,7 @@
 #include "Core.hpp"
 
 #include "Utils/Vector3.hpp"
+#include "Utils/Random.hpp"
 #include "Objects/Ray.hpp"
 
 namespace Ilya
@@ -50,10 +51,10 @@ namespace Ilya
                 // We take a random vector on the lens border, and use
                 // that as an offset in the ray origin to simulate the
                 // effect of an actual lens.
-                auto rd = lens * rand_in_unit_disk();
+                auto rd = lens * Random::in_unit_disk();
                 auto offset = u*rd.x + v*rd.y;
 
-                // The "viewport origin" is set at the lower left corner
+                // The "viewport origin" is set in the lower left corner
                 // of the viewport plane.
                 return {orig + offset, llc + s*horizontal + t*vertical - orig - offset, random_float(t_open, t_close)};
             }

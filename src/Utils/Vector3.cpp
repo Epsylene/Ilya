@@ -66,37 +66,6 @@ namespace Ilya
         return {std::sqrt(vec.x), std::sqrt(vec.y), std::sqrt(vec.z)};
     }
 
-    Vec3 rand_in_unit_sphere()
-    {
-        while (true)
-        {
-            // A random point inside of a unit sphere is a random vector in
-            // a unit cube which has norm less than 1.
-            auto p = Vec3::random(-1.f, 1.f);
-            if (square(p) >= 1)
-                continue;
-
-            return p;
-        }
-    }
-
-    Vector3 rand_in_unit_disk()
-    {
-        while(true)
-        {
-            Vec3 p {random_float(-1, 1), random_float(-1, 1), 0.f};
-            if(square(p) >= 1)
-                continue;
-
-            return p;
-        }
-    }
-
-    Vec3 random_unit_vector()
-    {
-        return unit(rand_in_unit_sphere());
-    }
-
     bool near_zero(const Vector3& vec)
     {
         auto e = std::numeric_limits<float>::epsilon();

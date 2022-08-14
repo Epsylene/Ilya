@@ -1,6 +1,7 @@
 
 #include "Material.hpp"
 #include "Hittable.hpp"
+#include "Utils/Random.hpp"
 
 namespace Ilya
 {
@@ -39,7 +40,7 @@ namespace Ilya
         // new ray direction to place a random point on the surface
         // of this unit sphere, by offseting by the normal (which
         // is unit-length) and then adding a random unit vector.
-        auto scattered = rec.normal + random_unit_vector();
+        auto scattered = rec.normal + Random::unit_vector();
         if(near_zero(scattered))
             scattered = rec.normal;
 
@@ -59,7 +60,7 @@ namespace Ilya
         // that do not scatter exactly like expected, and the more the
         // object has a matte look to it.
         auto reflected = reflect(unit(in.dir), rec.normal);
-        out = {rec.p, reflected + fuziness * rand_in_unit_sphere(), in.cast_time};
+        out = {rec.p, reflected + fuziness * Random::in_unit_sphere(), in.cast_time};
         attenuation = albedo;
 
         // We only want scattering to happen if rays are indeed reflected
@@ -104,7 +105,7 @@ namespace Ilya
         // In an isotropic material, rays are scattered off uniformly
         // in all directions: thus the direction of the scattered ray
         // is simply a point in the unit sphere.
-        out = {rec.p, rand_in_unit_sphere(), in.cast_time};
+        out = {rec.p, Random::in_unit_sphere(), in.cast_time};
         attenuation = albedo->val(rec.u, rec.v, rec.p);
 
         return true;

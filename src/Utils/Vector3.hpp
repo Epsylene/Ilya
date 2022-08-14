@@ -145,8 +145,5 @@ namespace Ilya
     float square(const Vector3& vec);
     Vector3 sqrt(const Vector3& vec);
 
-    Vector3 rand_in_unit_sphere();
-    Vector3 rand_in_unit_disk();
-    Vector3 random_unit_vector();
     bool near_zero(const Vector3& vec);
 }
