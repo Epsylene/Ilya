@@ -17,9 +17,20 @@ namespace Ilya
                 return {};
             }
 
-            virtual bool scatter(const Ray& in, Ray& out, Color& attenuation, const HitRecord& rec) const = 0;
+            virtual bool scatter(const Ray& in, Ray& out, Color& albedo,
+                    const HitRecord& rec, float & pdf) const
+            {
+                return false;
+            }
+
+            virtual float scattering_pdf(const Ray& in, const Ray& out, const HitRecord& rec) const
+            {
+                return 0;
+            }
     };
 
+    /// Ideal diffuse reflection, where rays scatter uniformly in random
+    /// directions off the surface.
     class Lambertian: public Material
     {
         public:
@@ -29,10 +40,17 @@ namespace Ilya
             explicit Lambertian(const Color& albedo): albedo(std::make_shared<SolidColor>(albedo)) {}
             explicit Lambertian(const std::shared_ptr<Texture>& tex): albedo(tex) {}
 
-            virtual bool scatter(const Ray& in, Ray& out, Color& attenuation,
-                                 const HitRecord& rec) const override;
+            virtual bool
+            scatter(const Ray& in, Ray& out, Color& albedo,
+                    const HitRecord& rec, float & pdf) const override;
+
+            virtual float scattering_pdf(const Ray& in, const Ray& out,
+                                         const HitRecord& rec) const override;
     };
 
+    /// Specular reflection: the rays scatter off the surface at the same
+    /// angle with which they arrived. The fuziness parameter adds a bit
+    /// of diffusivity to the material, so the metal has a more matte look.
     class Metal: public Material
     {
         public:
@@ -43,8 +61,9 @@ namespace Ilya
             explicit Metal(const Color& albedo, float fuziness):
                     albedo(albedo), fuziness(fuziness < 1 ? fuziness : 1) {}
 
-            virtual bool scatter(const Ray& in, Ray& out, Color& attenuation,
-                                 const HitRecord& rec) const override;
+            virtual bool
+            scatter(const Ray& in, Ray& out, Color& albedo,
+                    const HitRecord& rec, float & pdf) const override;
     };
 
     class Dielectric: public Material
@@ -55,8 +74,9 @@ namespace Ilya
 
             Dielectric(float refraction): refraction(refraction) {}
 
-            virtual bool scatter(const Ray& in, Ray& out, Color& attenuation,
-                                 const HitRecord& rec) const override;
+            virtual bool
+            scatter(const Ray& in, Ray& out, Color& albedo,
+                    const HitRecord& rec, float & pdf) const override;
 
         private:
 
@@ -82,8 +102,12 @@ namespace Ilya
             explicit DiffuseLight(const Color& c):
                 emitter(std::make_shared<SolidColor>(c)) {}
 
-            virtual bool scatter(const Ray& in, Ray& out, Color& attenuation,
-                                 const HitRecord& rec) const override
+            explicit DiffuseLight(float factor):
+                DiffuseLight(Color{factor}) {}
+
+            virtual bool
+            scatter(const Ray& in, Ray& out, Color& albedo,
+                    const HitRecord& rec, float & pdf) const override
             {
                 return false;
             }
@@ -103,10 +127,11 @@ namespace Ilya
             explicit Isotropic(const Color& c):
                 albedo(std::make_shared<SolidColor>(c)) {}
 
-            Isotropic(const std::shared_ptr<Texture>& tex):
+            explicit Isotropic(const std::shared_ptr<Texture>& tex):
                 albedo(tex) {}
 
-            virtual bool scatter(const Ray& in, Ray& out, Color& attenuation,
-                                 const HitRecord& rec) const override;
+            virtual bool
+            scatter(const Ray& in, Ray& out, Color& albedo,
+                    const HitRecord& rec, float & pdf) const override;
     };
 }

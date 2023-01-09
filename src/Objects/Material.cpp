@@ -20,38 +20,43 @@ namespace Ilya
         return t_normal + t_tangent;
     }
 
-    bool Lambertian::scatter(const Ray& in, Ray& out, Color& attenuation,
-                             const HitRecord& rec) const
+    bool Lambertian::scatter(const Ray& in, Ray& out, Color& albedo,
+                             const HitRecord& rec, float& pdf) const
     {
-        // Lambertian diffusion: contrary to specular reflection,
-        // where the ray reflects off the surface at a precise angle,
-        // diffuse reflection has rays scatter at many different
-        // angles. Lambertian diffusion is the ideal case of diffuse
-        // reflection, where the ray scatter following a cosinus law.
-        // Geometrically, this means that the ray flux has the shape
-        // of a unit circle tangent to the scattering point. The
-        // relation with the cosinus law can then be understood
-        // when one considers the angle between the center of the
-        // circle, the scattering point and a random point on the
-        // surface of the sphere: when this angle is 0, the distance
-        // between the scattering point and the point on the surface
-        // is maximal, and when it is pi/2, it is minimal, just like
-        // with the cosinus function. We thus need simply for our
-        // new ray direction to place a random point on the surface
-        // of this unit sphere, by offseting by the normal (which
-        // is unit-length) and then adding a random unit vector.
-        auto scattered = rec.normal + Random::unit_vector();
-        if(near_zero(scattered))
-            scattered = rec.normal;
+        // Lambertian diffusion: contrary to specular reflection, where the
+        // ray reflects off the surface at a precise angle, diffuse
+        // reflection has rays scatter at many angles. Lambertian diffusion
+        // is the ideal case of diffuse reflection, where the ray scatter
+        // following a cosinus law. The scattering will then be done with
+        // a random cosine law vector, as seen in the local basis of the
+        // surface:
+        ONB uvw {rec.normal};
+        auto dir = uvw.local(Random::cosine_dir());
 
-        out = {rec.p, scattered, in.cast_time};
-        attenuation = albedo->val(rec.u, rec.v, rec.p);
+        out = {rec.p, unit(dir), in.cast_time};
+        albedo = this->albedo->val(rec.u, rec.v, rec.p);
+        // Lambert's cosine law can be rendered as the dot product of the
+        // material's surface normal and the scattering ray direction,
+        // because N·L = |N||L|cos(theta) = cos(theta), N and L being
+        // unitary. Here the normal N is given by the w vector of the
+        // surface's local basis, and the direction vector is 'out.dir'.
+        // Normalizing by pi then gives the spatial PDF of the scattering
+        // rays:
+        pdf = dot(uvw.w, out.dir) / pi;
 
         return true;
     }
 
-    bool Metal::scatter(const Ray& in, Ray& out, Color& attenuation,
-                        const HitRecord& rec) const
+    float Lambertian::scattering_pdf(const Ray& in, const Ray& out,
+                                     const HitRecord& rec) const
+    {
+        auto cos = dot(rec.normal, unit(out.dir));
+
+        return cos < 0.f ? 0.f : cos/pi;
+    }
+
+    bool Metal::scatter(const Ray& in, Ray& out, Color& albedo,
+                        const HitRecord& rec, float & pdf) const
     {
         // Specular reflection is simple: the ray scatters off the
         // surface at the same angle, with opposite direction.
@@ -61,17 +66,17 @@ namespace Ilya
         // object has a matte look to it.
         auto reflected = reflect(unit(in.dir), rec.normal);
         out = {rec.p, reflected + fuziness * Random::in_unit_sphere(), in.cast_time};
-        attenuation = albedo;
+        albedo = this->albedo;
 
         // We only want scattering to happen if rays are indeed reflected
         // off the surface.
         return (dot(out.dir, rec.normal) > 0);
     }
 
-    bool Dielectric::scatter(const Ray& in, Ray& out, Color& attenuation,
-                             const HitRecord& rec) const
+    bool Dielectric::scatter(const Ray& in, Ray& out, Color& albedo,
+                             const HitRecord& rec, float & pdf) const
     {
-        attenuation = {1.f, 1.f, 1.f};
+        albedo = {1.f, 1.f, 1.f};
         float ratio = rec.frontFace ? (1.f/refraction) : 1.f;
 
         auto udir = unit(in.dir);
@@ -99,14 +104,14 @@ namespace Ilya
         return true;
     }
 
-    bool Isotropic::scatter(const Ray& in, Ray& out, Color& attenuation,
-                            const HitRecord& rec) const
+    bool Isotropic::scatter(const Ray& in, Ray& out, Color& albedo,
+                            const HitRecord& rec, float & pdf) const
     {
         // In an isotropic material, rays are scattered off uniformly
         // in all directions: thus the direction of the scattered ray
         // is simply a point in the unit sphere.
         out = {rec.p, Random::in_unit_sphere(), in.cast_time};
-        attenuation = albedo->val(rec.u, rec.v, rec.p);
+        albedo = this->albedo->val(rec.u, rec.v, rec.p);
 
         return true;
     }

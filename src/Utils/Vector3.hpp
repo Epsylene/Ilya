@@ -124,9 +124,9 @@ namespace Ilya
 
         inline static Vector3 random(float min = 0.f, float max = 1.f)
         {
-            return { random_float(min, max),
-                     random_float(min, max),
-                     random_float(min, max) };
+            return {random_float(min, max),
+                    random_float(min, max),
+                    random_float(min, max) };
         }
     };
 
@@ -146,4 +146,27 @@ namespace Ilya
     Vector3 sqrt(const Vector3& vec);
 
     bool near_zero(const Vector3& vec);
+
+    class ONB
+    {
+        public:
+
+            explicit ONB(const Vec3& w);
+
+            Vec3 local(float a, float b, float c) const
+            {
+//                auto p = a*u + b*v + c*w;
+//                std::cout << p.x << "\t" << p.y << "\t" << p.z << "\n";
+                return a*u + b*v + c*w;
+            }
+
+            Vec3 local(const Vec3& v) const
+            {
+                return local(v.x, v.y, v.z);
+            }
+
+        public:
+
+            Vec3 u, v, w;
+    };
 }

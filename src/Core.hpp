@@ -10,15 +10,16 @@ namespace fs = std::filesystem;
 
 namespace Ilya
 {
-    static const std::filesystem::path res_path { xmacro_str(ILYA_RES_DIR) };
-    static const std::filesystem::path app_path { xmacro_str(ILYA_APP_DIR) };
+    static const fs::path res_path { xmacro_str(ILYA_RES_DIR) };
+    static const fs::path app_path { xmacro_str(ILYA_APP_DIR) };
 
     static const float infinity = std::numeric_limits<float>::infinity();
     static const float pi = static_cast<float>(M_PI);
+    static const float epsilon = std::numeric_limits<float>::epsilon();
 
     inline float random_float(float min = 0.f, float max = 1.f)
     {
-        float r = rand() / (RAND_MAX + 1.0);
+        auto r = rand() / (RAND_MAX + 1.f);
         return min + (max - min)*r;
     }
 

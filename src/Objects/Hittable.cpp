@@ -315,7 +315,7 @@ namespace Ilya
         // integrating ln(P) = D.l, which gives us the distance.
         const auto ray_length = length(r.dir);
         const auto dist_in_boundary = (rec2.t - rec1.t) * ray_length;
-        const auto hit_distance = -std::log(random_float())/density;
+        const auto hit_distance = -std::log(random_float()) / density;
 
         if(hit_distance > dist_in_boundary)
             return false;

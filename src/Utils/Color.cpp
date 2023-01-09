@@ -102,4 +102,9 @@ namespace Ilya
     {
         return { color.r * factor, color.g * factor, color.b * factor, color.a };
     }
+
+    Color operator/(const Color& color, float factor)
+    {
+        return color * (1/factor);
+    }
 }

@@ -37,12 +37,22 @@ namespace Ilya
                 {
                     // A random point inside a unit sphere is a random
                     // vector in a unit cube which has norm less than 1.
-                    auto p = vec3(-1.f, 1.f);
+                    auto p = Random::vec3(-1.f, 1.f);
                     if (square(p) >= 1)
                         continue;
 
                     return p;
                 }
+            }
+
+            static Vec3 in_hemisphere(const Vec3& normal)
+            {
+                auto vec = Random::in_unit_sphere();
+
+                if(dot(vec, normal) > 0.f)
+                    return vec;
+                else
+                    return -vec;
             }
 
             static Vector3 in_unit_disk()
@@ -60,6 +70,37 @@ namespace Ilya
             static Vec3 unit_vector()
             {
                 return unit(in_unit_sphere());
+            }
+
+            static Vec3 cosine_dir()
+            {
+                // To generate random directions on a sphere, we only need
+                // two random numbers, r1 and r2, because those random
+                // directions will be sampled on the surface of the sphere,
+                // which is two-dimensional. The first number, r1, is the
+                // length (between 0 and 1) corresponding to the angle phi
+                // (between 0 and 2*pi): then r1 = phi/(2*pi). The same
+                // goes for r2, except that it is the length corresponding
+                // to the projection of the altitude length, and that
+                // points are distributed on the longitude following a
+                // distribution f(theta) (this comes from the supposition
+                // that our PDF is rotationaly symmetric around Z, which
+                // means that it depends only on theta): r2 =
+                // int{2*pi*f(u)sin(u)d(u)}. Let's say that f(theta) =
+                // cos(theta)/pi, which is the cosine distribution that
+                // Lambertian materials follow. Then r2 = 1 - cos^2(theta),
+                // and changing to cartesian coordinates we can finally get
+                // a random (x, y, z) direction on the sphere that follows
+                // this distribution.
+                auto r1 = Random::rfloat();
+                auto r2 = Random::rfloat();
+                auto phi = 2*pi*r1;
+
+                auto x = std::cos(phi)*std::sqrt(r2);
+                auto y = std::sin(phi)*std::sqrt(r2);
+                auto z = std::sqrt(1 - r2);
+
+                return {x, y, z};
             }
 
         private:

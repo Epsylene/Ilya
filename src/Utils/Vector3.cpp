@@ -68,8 +68,26 @@ namespace Ilya
 
     bool near_zero(const Vector3& vec)
     {
-        auto e = std::numeric_limits<float>::epsilon();
+        return (std::abs(vec.x) < epsilon
+            && std::abs(vec.y) < epsilon
+            && std::abs(vec.z) < epsilon);
+    }
 
-        return (vec.x < e && vec.y < e && vec.z < e);
+    ONB::ONB(const Vec3& w)
+    {
+        // To build an orthogonal basis (u, v, w) from a given vector,
+        // first normalize it:
+        this->w = unit(w);
+        // Then check if it is not equal to some axis, which we take here
+        // to be X. We don't check exactly for the equality, to avoid
+        // floating point rounding errors.
+        Vec3 a = (std::abs(w.x) > 0.9f) ? Vec3{0, 1, 0} : Vec3{1, 0, 0};
+        // From those two vectors, build a third, perpendicular to both,
+        // using the cross product:
+        v = unit(cross(w, a));
+        // Finally, with two unitary and orthogonal vectors in our basis,
+        // we can easily find the third and last using the cross product
+        // again:
+        u = cross(w, v);
     }
 }

@@ -16,6 +16,9 @@ namespace Ilya
 
             Renderer(const Image& img, const HittableList& world, uint32_t samples, uint32_t depth);
 
+            /// Render the image producing a number of rays per pixel from
+            /// the camera in a random direction and calling `ray_color()`
+            /// to get the pixel color.
             void render(const Camera& cam);
 
             uint32_t getWidth() const { return img.width; }
@@ -23,6 +26,9 @@ namespace Ilya
 
         private:
 
+            /// Take a ray `r` and recursively hit while it is not absorbed
+            /// with depth `depth`. If it doesn't hit anything, return
+            /// `background`; else, the ray color and emission light.
             Color ray_color(const Ray& r, const Color& background, int depth);
 
             Image img;
