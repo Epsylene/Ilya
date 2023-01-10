@@ -65,7 +65,7 @@ namespace Ilya
         // the first pixel is the bottom-left one.
         for (int j = img.height - 1; j >= 0; --j)
         {
-            std::cout << "Scanlines remaining: " << j << "\n";
+            fmt::print("Scanlines remaining: {}\n", j);
 
             for (int i = 0; i < img.width; ++i)
             {

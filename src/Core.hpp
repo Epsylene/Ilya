@@ -2,6 +2,7 @@
 #pragma once
 
 #include "ilpch.hpp"
+#include <fmt/core.h>
 
 #define macro_str(a) #a
 #define xmacro_str(a) macro_str(a)
