@@ -34,6 +34,16 @@ namespace Ilya
 
             virtual bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const = 0;
             virtual bool bounding_box(float t0, float t1, BoundingBox& box) const = 0;
+
+            virtual Vec3 random_vector(const Vec3& origin) const
+            {
+                return {};
+            }
+
+            virtual float pdf_value(const Vec3& origin, const Vec3& dir)
+            {
+                return 0.f;
+            }
     };
 
     class HittableList: public Hittable
@@ -135,26 +145,19 @@ namespace Ilya
     {
         public:
 
-            float r0, s0, r1, s1, k;
-            std::shared_ptr<Material> material;
-
             Rectangle(float r0, float s0, float r1, float s1, float k,
                       const std::shared_ptr<Material>& mat):
                       r0(r0), s0(s0), r1(r1), s1(s1), k(k), material(mat) {}
 
             virtual bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
+            virtual bool bounding_box(float t0, float t1, BoundingBox& box) const override;
+            virtual Vec3 random_vector(const Vec3& origin) const override;
+            virtual float pdf_value(const Vec3& origin, const Vec3& dir) override;
 
-            virtual bool bounding_box(float t0, float t1, BoundingBox& box) const override
-            {
-                if constexpr(XY<ax0, ax1>)
-                    box = {{r0, s0, k - 0.0001f}, {r1, s1, k + 0.0001f}};
-                else if constexpr(XZ<ax0, ax1>)
-                    box = {{r0, k - 0.0001f, s0 }, {r1, k + 0.0001f, s1}};
-                else if constexpr(YZ<ax0, ax1>)
-                    box = {{k - 0.0001f, r0, s0 }, {k + 0.0001f, r1, s1}};
+        public:
 
-                return true;
-            }
+            float r0, s0, r1, s1, k;
+            std::shared_ptr<Material> material;
     };
 
     class Box: public Hittable

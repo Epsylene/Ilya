@@ -8,7 +8,8 @@ namespace Ilya
                         samples_per_pixel(samples), depth(depth)
     {}
 
-    Color Renderer::ray_color(const Ray& r, const Color& background, int depth)
+    Color Renderer::ray_color(const Ray& r, std::shared_ptr<Hittable> light,
+                        const Color& background, int depth)
     {
         HitRecord rec {};
 
@@ -31,14 +32,21 @@ namespace Ilya
 
         Ray scattered {};
         Color albedo {};
-        Color emitted = rec.material->emitted(rec.u, rec.v, rec.p);
-        float pdf;
+        Color emitted = rec.material->emitted(rec.u, rec.v, rec.p, rec);
+        float pdf_val;
 
         // If the ray doesn't scatter from the material, it means that it
         // is emissive (it produces light); then the color we want to
         // output is the color of the emitted light.
-        if(!rec.material->scatter(r, scattered, albedo, rec, pdf))
+        if(!rec.material->scatter(r, scattered, albedo, rec, pdf_val))
             return emitted;
+
+        auto cos_pdf = std::make_shared<CosinePDF>(rec.normal);
+        auto light_pdf = std::make_shared<HittablePDF>(light, rec.p);
+        MixturePDF pdf {cos_pdf, light_pdf};
+
+        scattered = {rec.p, pdf.random_vector(), r.cast_time};
+        pdf_val = pdf.val(scattered.dir);
 
         // In the other cases, we want the colors from both the emitted
         // light and the ray itself. The ray color is multiplied by two
@@ -54,10 +62,10 @@ namespace Ilya
         // function, dividing by another PDF, this time of the rays spatial
         // distribution.
         return emitted + albedo * rec.material->scattering_pdf(r, scattered, rec)
-            * ray_color(scattered, background, depth - 1) / pdf;
+                         * ray_color(scattered, light, background, depth - 1) / pdf_val;
     }
 
-    void Renderer::render(const Camera& cam)
+    void Renderer::render(const Camera& cam, std::shared_ptr<Hittable> light)
     {
         // We render the image from top to bottom, because the
         // image is stored in memory from bottom to top. This
@@ -76,7 +84,7 @@ namespace Ilya
                     auto u = (i + random_float()) / (img.width - 1);
                     auto v = (j + random_float()) / (img.height - 1);
 
-                    pixel_Color += ray_color(cam.ray(u, v), {}, depth);
+                    pixel_Color += ray_color(cam.ray(u, v), light, {}, depth);
                 }
 
                 // Colors are scaled inversely proportional to the samples per

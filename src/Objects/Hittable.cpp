@@ -258,6 +258,75 @@ namespace Ilya
         return true;
     }
 
+    template<Axis ax0, Axis ax1>
+    requires (ax0 < ax1)bool
+    Rectangle<ax0, ax1>::bounding_box(float t0, float t1,
+                                      BoundingBox& box) const
+    {
+        // The bounding box cannot have zero width, so we leave a little
+        // room on the normal axis.
+        if constexpr(XY<ax0, ax1>)
+            box = {{r0, s0, k - 0.0001f}, {r1, s1, k + 0.0001f}};
+        else if constexpr(XZ<ax0, ax1>)
+            box = {{r0, k - 0.0001f, s0 }, {r1, k + 0.0001f, s1}};
+        else if constexpr(YZ<ax0, ax1>)
+            box = {{k - 0.0001f, r0, s0 }, {k + 0.0001f, r1, s1}};
+
+        return true;
+    }
+
+    template<Axis ax0, Axis ax1>
+    requires (ax0 < ax1)
+    Vec3 Rectangle<ax0, ax1>::random_vector(const Vec3& origin) const
+    {
+        Vec3 random_point {};
+
+        if constexpr(XY<ax0, ax1>)
+            random_point = {random_float(r0, r1), random_float(s0, s1), k};
+        else if constexpr(XZ<ax0, ax1>)
+            random_point = {random_float(r0, r1), k, random_float(s0, s1) };
+        else if constexpr(YZ<ax0, ax1>)
+            random_point = {k, random_float(r0, r1), random_float(s0, s1) };
+
+        return random_point - origin;
+    }
+
+    template<Axis ax0, Axis ax1>
+    requires (ax0 < ax1)
+    float Rectangle<ax0, ax1>::pdf_value(const Vec3& origin, const Vec3& dir)
+    {
+        // Check that the ray {origin, direction} hits the rectangle (in
+        // other words, that it is directed towards it): if it doesn't,
+        // return 0, because we want this PDF to be a random distribution
+        // directed at this rectangle (a light, for example, which we will
+        // want to "attract" rays, in order to avoid repetitive and
+        // firefly-producing ray bounces around the box).
+        HitRecord rec;
+        if(!hit({origin, dir}, 0.001, infinity, rec))
+            return 0;
+
+        // If it does hit the rectangle, we need the PDF for the random
+        // incoming vector. Two surfaces might be considered: the first is
+        // the rectangle itself, where we want random vectors to be
+        // distributed uniformly, so the probability is dA/A (in the same
+        // fashion that the probability of obtaining a number between 1 and
+        // 6 on a die is 1, the number element, divided by 6, the number of
+        // elements). The second surface is the solid angle surface of the
+        // unit sphere around the ray origin (that is, the intersection
+        // between the sphere surface and the cone with its tip on the
+        // origin and its base at the rectangle), which has element dw. We
+        // can show geometrically that if the ray and the rectangle make an
+        // angle alpha, then dw = cos(alpha)*dA/d^2, where d^2 is the
+        // squared distance between the ray origin and the rectangle. But
+        // both probabilities must be the same, so pdf_val*dw = dA/A and
+        // finally pdf_val = d^2/(cos(alpha)*A).
+        auto area = (r1-r0)*(s1-s0);
+        auto d = rec.t * length(dir);
+        auto cos = std::abs(dot(dir, rec.normal) / length(dir));
+
+        return d*d/(cos*area);
+    }
+
     using Axis::X, Axis::Y, Axis::Z;
     template class Rectangle<X, Y>;
     template class Rectangle<X, Z>;

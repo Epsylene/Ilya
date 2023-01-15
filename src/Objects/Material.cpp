@@ -115,4 +115,13 @@ namespace Ilya
 
         return true;
     }
+
+    Color DiffuseLight::emitted(float u, float v, const Vec3& p,
+                                const HitRecord& rec) const
+    {
+        if(!rec.frontFace)
+            return {};
+
+        return emitter->val(u, v, p);
+    }
 }

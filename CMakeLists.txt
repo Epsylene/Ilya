@@ -17,7 +17,7 @@ add_library(stb_image STATIC lib/stb_image/stb_image.cpp lib/stb_image/stb_image
 target_include_directories(stb_image PUBLIC lib/stb_image)
 target_link_libraries(Ilya PUBLIC stb_image fmt)
 
-add_subdirectory(lib/fmt)
+add_subdirectory(lib/fmt EXCLUDE_FROM_ALL)
 
 set(ILYA_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/lib/stb_image ${CMAKE_SOURCE_DIR}/lib/fmt/include)
 target_include_directories(Ilya PUBLIC ${ILYA_INCLUDE_DIRS})

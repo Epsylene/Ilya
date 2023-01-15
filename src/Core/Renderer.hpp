@@ -19,7 +19,8 @@ namespace Ilya
             /// Render the image producing a number of rays per pixel from
             /// the camera in a random direction and calling `ray_color()`
             /// to get the pixel color.
-            void render(const Camera& cam);
+            void
+            render(const Camera& cam, std::shared_ptr<Hittable> light);
 
             uint32_t getWidth() const { return img.width; }
             uint32_t getHeight() const { return img.height; }
@@ -29,7 +30,8 @@ namespace Ilya
             /// Take a ray `r` and recursively hit while it is not absorbed
             /// with depth `depth`. If it doesn't hit anything, return
             /// `background`; else, the ray color and emission light.
-            Color ray_color(const Ray& r, const Color& background, int depth);
+            Color ray_color(const Ray& r, std::shared_ptr<Hittable> light,
+                            const Color& background, int depth);
 
             Image img;
             HittableList world;

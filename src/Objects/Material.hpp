@@ -12,7 +12,8 @@ namespace Ilya
     {
         public:
 
-            virtual Color emitted(float u, float v, const Vec3& p) const
+            virtual Color emitted(float u, float v, const Vec3& p,
+                                  const HitRecord& rec) const
             {
                 return {};
             }
@@ -94,8 +95,6 @@ namespace Ilya
     {
         public:
 
-            std::shared_ptr<Texture> emitter;
-
             explicit DiffuseLight(const std::shared_ptr<Texture>& emitter):
                 emitter(emitter) {}
 
@@ -112,17 +111,17 @@ namespace Ilya
                 return false;
             }
 
-            virtual Color emitted(float u, float v, const Vec3& p) const override
-            {
-                return emitter->val(u, v, p);
-            }
+            virtual Color emitted(float u, float v, const Vec3& p,
+                                  const HitRecord& rec) const override;
+
+        public:
+
+            std::shared_ptr<Texture> emitter;
     };
 
     class Isotropic: public Material
     {
         public:
-
-            std::shared_ptr<Texture> albedo;
 
             explicit Isotropic(const Color& c):
                 albedo(std::make_shared<SolidColor>(c)) {}
@@ -133,5 +132,9 @@ namespace Ilya
             virtual bool
             scatter(const Ray& in, Ray& out, Color& albedo,
                     const HitRecord& rec, float & pdf) const override;
+
+        public:
+
+            std::shared_ptr<Texture> albedo;
     };
 }

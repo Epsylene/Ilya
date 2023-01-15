@@ -3,6 +3,7 @@
 
 #include "Core.hpp"
 #include "Vector3.hpp"
+#include "Objects/Hittable.hpp"
 
 namespace Ilya
 {
@@ -107,5 +108,92 @@ namespace Ilya
 
             static std::mt19937 engine;
             static std::uniform_int_distribution<std::mt19937::result_type> distribution;
+    };
+
+    class PDF
+    {
+        public:
+
+            virtual Vec3 random_vector() const = 0;
+            virtual float val(const Vec3& dir) const = 0;
+    };
+
+    class CosinePDF: public PDF
+    {
+        public:
+
+            explicit CosinePDF(const Vec3& w): uvw(w) {}
+
+            virtual Vec3 random_vector() const override
+            {
+                // Generate a random vector following a cosine distribution
+                // in the local basis:
+                return uvw.local(Random::cosine_dir());
+            }
+
+            virtual float val(const Vec3& dir) const override
+            {
+                // If the cosine is nonpositive, that is, if the angle
+                // between the random vector and the surface normal is
+                // greater than pi/2 (which means that the random vector is
+                // directed towards the surface), return 0; in the other
+                // case, return the cosine divided by pi, which is the
+                // value of the probability for the cosine distribution
+                // over [0, pi].
+                auto cos = dot(unit(dir), uvw.w);
+                return (cos <= 0) ? 0 : cos/pi;
+            }
+
+        public:
+
+            ONB uvw;
+    };
+
+    class HittablePDF: public PDF
+    {
+        public:
+
+            HittablePDF(std::shared_ptr<Hittable> obj, const Vec3& origin):
+                obj(obj), origin(origin) {}
+
+            virtual Vec3 random_vector() const override
+            {
+                return obj->random_vector(origin);
+            }
+
+            virtual float val(const Vec3& dir) const override
+            {
+                return obj->pdf_value(origin, dir);
+            }
+
+        public:
+
+            std::shared_ptr<Hittable> obj;
+            Vec3 origin;
+    };
+
+    class MixturePDF: public PDF
+    {
+        public:
+
+            MixturePDF(std::shared_ptr<PDF> p0, std::shared_ptr<PDF> p1):
+                    p0(p0), p1(p1) {}
+
+            virtual Vec3 random_vector() const override
+            {
+                if(random_float() < 0.5f)
+                    return p0->random_vector();
+                else
+                    return p1->random_vector();
+            }
+
+            virtual float val(const Vec3& dir) const override
+            {
+                return 0.5f*(p0->val(dir) + p1->val(dir));
+            }
+
+        public:
+
+            std::shared_ptr<PDF> p0, p1;
     };
 }

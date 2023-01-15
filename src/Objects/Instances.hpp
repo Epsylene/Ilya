@@ -24,11 +24,6 @@ namespace Ilya
     {
         public:
 
-            std::shared_ptr<Hittable> obj;
-            BoundingBox box;
-            bool hadbox;
-            float sin, cos;
-
             Rotate(const std::shared_ptr<Hittable>& obj, float angle);
 
             virtual bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
@@ -39,5 +34,39 @@ namespace Ilya
 
                 return hadbox;
             }
+
+        public:
+
+            std::shared_ptr<Hittable> obj;
+            BoundingBox box;
+            bool hadbox;
+            float sin, cos;
+    };
+
+    class Flip: public Hittable
+    {
+        public:
+
+            Flip(std::shared_ptr<Hittable> obj): obj(obj) {}
+
+            virtual bool hit(const Ray& r, float tmin, float tmax,
+                             HitRecord& rec) const override
+            {
+                if(!obj->hit(r, tmin, tmax, rec))
+                    return false;
+
+                rec.frontFace = !rec.frontFace;
+                return true;
+            }
+
+            virtual bool bounding_box(float t0, float t1,
+                                      BoundingBox& box) const override
+            {
+                return obj->bounding_box(t0, t1, box);
+            }
+
+        public:
+
+            std::shared_ptr<Hittable> obj;
     };
 }
