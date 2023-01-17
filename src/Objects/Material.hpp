@@ -7,6 +7,17 @@
 namespace Ilya
 {
     struct HitRecord;
+    class PDF;
+
+    /// Struct containing information on the scattering ray as well as
+    /// the material's albedo, PDF and specularity.
+    struct ScatterRecord
+    {
+        Ray ray {};
+        bool is_specular;
+        Color albedo {};
+        std::shared_ptr<PDF> pdf;
+    };
 
     class Material
     {
@@ -18,8 +29,8 @@ namespace Ilya
                 return {};
             }
 
-            virtual bool scatter(const Ray& in, Ray& out, Color& albedo,
-                    const HitRecord& rec, float & pdf) const
+            virtual bool scatter(const Ray& in, ScatterRecord& scatter,
+                                 const HitRecord& rec) const
             {
                 return false;
             }
@@ -36,17 +47,18 @@ namespace Ilya
     {
         public:
 
-            std::shared_ptr<Texture> albedo;
-
             explicit Lambertian(const Color& albedo): albedo(std::make_shared<SolidColor>(albedo)) {}
             explicit Lambertian(const std::shared_ptr<Texture>& tex): albedo(tex) {}
 
-            virtual bool
-            scatter(const Ray& in, Ray& out, Color& albedo,
-                    const HitRecord& rec, float & pdf) const override;
+            bool scatter(const Ray& in, ScatterRecord& scatter,
+                         const HitRecord& rec) const override;
 
-            virtual float scattering_pdf(const Ray& in, const Ray& out,
-                                         const HitRecord& rec) const override;
+            float scattering_pdf(const Ray& in, const Ray& out,
+                                 const HitRecord& rec) const override;
+
+        public:
+
+            std::shared_ptr<Texture> albedo;
     };
 
     /// Specular reflection: the rays scatter off the surface at the same
@@ -56,28 +68,31 @@ namespace Ilya
     {
         public:
 
-            Color albedo;
-            float fuziness;
-
             explicit Metal(const Color& albedo, float fuziness):
                     albedo(albedo), fuziness(fuziness < 1 ? fuziness : 1) {}
 
-            virtual bool
-            scatter(const Ray& in, Ray& out, Color& albedo,
-                    const HitRecord& rec, float & pdf) const override;
+            bool scatter(const Ray& in, ScatterRecord& scatter,
+                         const HitRecord& rec) const override;
+
+        public:
+
+            Color albedo;
+            float fuziness;
     };
 
     class Dielectric: public Material
     {
         public:
 
+            explicit Dielectric(float refraction):
+                refraction(refraction) {}
+
+            bool scatter(const Ray& in, ScatterRecord& scatter,
+                         const HitRecord& rec) const override;
+
+        public:
+
             float refraction;
-
-            Dielectric(float refraction): refraction(refraction) {}
-
-            virtual bool
-            scatter(const Ray& in, Ray& out, Color& albedo,
-                    const HitRecord& rec, float & pdf) const override;
 
         private:
 
@@ -104,15 +119,14 @@ namespace Ilya
             explicit DiffuseLight(float factor):
                 DiffuseLight(Color{factor}) {}
 
-            virtual bool
-            scatter(const Ray& in, Ray& out, Color& albedo,
-                    const HitRecord& rec, float & pdf) const override
+            bool scatter(const Ray& in, ScatterRecord& scatter,
+                    const HitRecord& rec) const override
             {
                 return false;
             }
 
-            virtual Color emitted(float u, float v, const Vec3& p,
-                                  const HitRecord& rec) const override;
+            Color emitted(float u, float v, const Vec3& p,
+                          const HitRecord& rec) const override;
 
         public:
 
@@ -129,9 +143,8 @@ namespace Ilya
             explicit Isotropic(const std::shared_ptr<Texture>& tex):
                 albedo(tex) {}
 
-            virtual bool
-            scatter(const Ray& in, Ray& out, Color& albedo,
-                    const HitRecord& rec, float & pdf) const override;
+            bool scatter(const Ray& in, ScatterRecord& scatter,
+                    const HitRecord& rec) const override;
 
         public:
 

@@ -277,7 +277,7 @@ namespace Ilya
 
     template<Axis ax0, Axis ax1>
     requires (ax0 < ax1)
-    Vec3 Rectangle<ax0, ax1>::random_vector(const Vec3& origin) const
+    Vec3 Rectangle<ax0, ax1>::random_point(const Vec3& origin) const
     {
         Vec3 random_point {};
 
@@ -299,8 +299,8 @@ namespace Ilya
         // other words, that it is directed towards it): if it doesn't,
         // return 0, because we want this PDF to be a random distribution
         // directed at this rectangle (a light, for example, which we will
-        // want to "attract" rays, in order to avoid repetitive and
-        // firefly-producing ray bounces around the box).
+        // want to "attract" rays, in order to avoid repetitive and noisy
+        // ray bounces around the box).
         HitRecord rec;
         if(!hit({origin, dir}, 0.001, infinity, rec))
             return 0;

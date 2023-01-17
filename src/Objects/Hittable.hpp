@@ -20,9 +20,10 @@ namespace Ilya
 
         inline void face_normal(const Ray& r, const Vec3& outNormal)
         {
-            // If the ray and the outwards-poiting normal point in opposite
-            // directions, then the ray hits the front face of the object,
-            // and our normal is 'outNormal' ; if not, it is the opposite.
+            // If the ray and the outwards-poiting normal point in
+            // opposite directions, then the ray hits the front face of
+            // the object, and our normal is 'outNormal' ; if not, it is
+            // the opposite.
             frontFace = dot(r.dir, outNormal) < 0;
             normal = frontFace ? outNormal : -outNormal;
         }
@@ -35,7 +36,7 @@ namespace Ilya
             virtual bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const = 0;
             virtual bool bounding_box(float t0, float t1, BoundingBox& box) const = 0;
 
-            virtual Vec3 random_vector(const Vec3& origin) const
+            virtual Vec3 random_point(const Vec3& origin) const
             {
                 return {};
             }
@@ -151,7 +152,7 @@ namespace Ilya
 
             virtual bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
             virtual bool bounding_box(float t0, float t1, BoundingBox& box) const override;
-            virtual Vec3 random_vector(const Vec3& origin) const override;
+            virtual Vec3 random_point(const Vec3& origin) const override;
             virtual float pdf_value(const Vec3& origin, const Vec3& dir) override;
 
         public:

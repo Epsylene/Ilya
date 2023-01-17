@@ -20,11 +20,12 @@ int main()
 
     HittableList world {};
 
-    // Create the materials
+    // Materials
     auto white = std::make_shared<Lambertian>(std::make_shared<SolidColor>(Color{0.73f}));
     auto green = std::make_shared<Lambertian>(std::make_shared<SolidColor>(Color{0.12f, 0.45f, 0.15f}));
     auto red = std::make_shared<Lambertian>(std::make_shared<SolidColor>(Color{0.65f, 0.05f, 0.05f}));
     auto light_mat = std::make_shared<DiffuseLight>(15.f);
+    auto metal = std::make_shared<Metal>(Color{0.8f, 0.85f, 0.88f}, 0.f);
 
     // Create and place the walls and light
     using Axis::X, Axis::Y, Axis::Z;
@@ -38,7 +39,7 @@ int main()
     world.add(std::make_shared<Flip>(light));
 
     // Create and place the boxes
-    std::shared_ptr<Hittable> box1 = std::make_shared<Box>(Vec3{0, 0, 0}, Vec3{165, 330, 165}, white);
+    std::shared_ptr<Hittable> box1 = std::make_shared<Box>(Vec3{0, 0, 0}, Vec3{165, 330, 165}, metal);
     box1 = std::make_shared<Rotate<Y>>(box1, 15);
     box1 = std::make_shared<Translate>(box1, Vec3{265,0,295});
 

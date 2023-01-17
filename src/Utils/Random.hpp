@@ -50,6 +50,9 @@ namespace Ilya
             {
                 auto vec = Random::in_unit_sphere();
 
+                // A random point in the hemisphere is a random point
+                // in the upper half of the sphere, as defined by the
+                // given normal vector.
                 if(dot(vec, normal) > 0.f)
                     return vec;
                 else
@@ -58,6 +61,8 @@ namespace Ilya
 
             static Vector3 in_unit_disk()
             {
+                // Create random vectors in the [-1, 1] square until the
+                // length is inferior to 1 (thus in the unit disk).
                 while(true)
                 {
                     Vec3 p {random_float(-1, 1), random_float(-1, 1), 0.f};
@@ -68,6 +73,7 @@ namespace Ilya
                 }
             }
 
+            /// Get a random unit vector.
             static Vec3 unit_vector()
             {
                 return unit(in_unit_sphere());
@@ -75,24 +81,26 @@ namespace Ilya
 
             static Vec3 cosine_dir()
             {
-                // To generate random directions on a sphere, we only need
-                // two random numbers, r1 and r2, because those random
-                // directions will be sampled on the surface of the sphere,
-                // which is two-dimensional. The first number, r1, is the
-                // length (between 0 and 1) corresponding to the angle phi
-                // (between 0 and 2*pi): then r1 = phi/(2*pi). The same
-                // goes for r2, except that it is the length corresponding
-                // to the projection of the altitude length, and that
-                // points are distributed on the longitude following a
-                // distribution f(theta) (this comes from the supposition
-                // that our PDF is rotationaly symmetric around Z, which
-                // means that it depends only on theta): r2 =
-                // int{2*pi*f(u)sin(u)d(u)}. Let's say that f(theta) =
-                // cos(theta)/pi, which is the cosine distribution that
-                // Lambertian materials follow. Then r2 = 1 - cos^2(theta),
-                // and changing to cartesian coordinates we can finally get
-                // a random (x, y, z) direction on the sphere that follows
-                // this distribution.
+                // To generate random directions on a sphere, we only
+                // need two random numbers, r1 and r2, because those
+                // random directions will be sampled on the surface of
+                // the sphere, which is two-dimensional. The first
+                // number, r1, is the length (between 0 and 1)
+                // corresponding to the angle phi (between 0 and 2*pi):
+                // then r1 = phi/(2*pi). The same goes for r2, except
+                // that it is the length corresponding to the projection
+                // of the altitude length, and that points are
+                // distributed on the longitude following a distribution
+                // f(theta) (this comes from the supposition that our
+                // PDF is rotationaly symmetric around Z, which means
+                // that it depends only on theta): r2 =
+                // integral{2*pi*f(u)sin(u)d(u)}. Let's say that
+                // f(theta) = cos(theta)/pi, which is the cosine
+                // distribution that Lambertian materials follow. Then
+                // r2 = 1 - cos^2(theta), and changing to cartesian
+                // coordinates we can finally get a random (x, y, z)
+                // direction on the sphere that follows this
+                // distribution.
                 auto r1 = Random::rfloat();
                 auto r2 = Random::rfloat();
                 auto phi = 2*pi*r1;
@@ -110,14 +118,25 @@ namespace Ilya
             static std::uniform_int_distribution<std::mt19937::result_type> distribution;
     };
 
+    /// A PDF (Probability Density Function) is a probability
+    /// distribution of points in space; that is, it is a function that
+    /// gives the probability for a given vector to be randomly
+    /// generated. The PDF class does at the same time return this
+    /// probability for any given vector, and work as a random vector
+    /// generator following a distribution.
     class PDF
     {
         public:
 
+            /// Sends a random vector following the PDF distribution.
             virtual Vec3 random_vector() const = 0;
+
+            /// Gives the value of the PDF at the point `dir`.
             virtual float val(const Vec3& dir) const = 0;
     };
 
+    /// Cosine distribution PDF, used for example in Lambertian
+    /// materials.
     class CosinePDF: public PDF
     {
         public:
@@ -126,8 +145,8 @@ namespace Ilya
 
             virtual Vec3 random_vector() const override
             {
-                // Generate a random vector following a cosine distribution
-                // in the local basis:
+                // Generate a random vector following a cosine
+                // distribution in the local basis:
                 return uvw.local(Random::cosine_dir());
             }
 
@@ -135,11 +154,11 @@ namespace Ilya
             {
                 // If the cosine is nonpositive, that is, if the angle
                 // between the random vector and the surface normal is
-                // greater than pi/2 (which means that the random vector is
-                // directed towards the surface), return 0; in the other
-                // case, return the cosine divided by pi, which is the
-                // value of the probability for the cosine distribution
-                // over [0, pi].
+                // greater than pi/2 (which means that the random vector
+                // is directed towards the surface), return 0; in the
+                // other case, return the cosine (given by Lambert's
+                // cosine law) divided by pi, which is the value of the
+                // probability for the cosine distribution over [0, pi].
                 auto cos = dot(unit(dir), uvw.w);
                 return (cos <= 0) ? 0 : cos/pi;
             }
@@ -149,6 +168,12 @@ namespace Ilya
             ONB uvw;
     };
 
+    /// Hittable-oriented distribution, that is, the probability
+    /// distribution of random vectors on the surface of a given
+    /// hittable. This is useful for example to do importance sampling of
+    /// a light object: the PDF will produce random vectors directed only
+    /// towards the light, which reduces the noise coming from rays
+    /// bouncing around the box and never finding it.
     class HittablePDF: public PDF
     {
         public:
@@ -158,11 +183,16 @@ namespace Ilya
 
             virtual Vec3 random_vector() const override
             {
-                return obj->random_vector(origin);
+                // A random vector directed at a Hittable is a vector
+                // directed at a random point on the surface of the
+                // Hittable.
+                return obj->random_point(origin);
             }
 
             virtual float val(const Vec3& dir) const override
             {
+                // The probability that the ray {origin, dir} touches
+                // the Hittable object.
                 return obj->pdf_value(origin, dir);
             }
 
@@ -172,6 +202,8 @@ namespace Ilya
             Vec3 origin;
     };
 
+    /// Utility class for mixing different PDFs in order to control the
+    /// exact kind of importance sampling we want for the scene.
     class MixturePDF: public PDF
     {
         public:
