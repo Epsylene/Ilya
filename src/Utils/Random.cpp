@@ -1,5 +1,6 @@
 
 #include "Random.hpp"
+#include "Objects/Hittable.hpp"
 
 namespace Ilya
 {

@@ -5,51 +5,63 @@
 
 namespace Ilya
 {
+    /// Instancing class for translation: rather than applying
+    /// immediate-mode transformations on objects whose geometry
+    /// we may not know, instance classes wrap a hittable in a
+    /// class representing an action on the object and where each
+    /// function is overriden to simulate the effect of the action
+    /// on the object.
     class Translate: public Hittable
     {
         public:
 
-            Vec3 offset;
-            std::shared_ptr<Hittable> obj;
-
-            Translate(const std::shared_ptr<Hittable>& obj, const Vec3& offset):
+            Translate(const Ref<Hittable>& obj, const Vec3& offset):
                 obj(obj), offset(offset) {}
 
-            virtual bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
-            virtual bool bounding_box(float t0, float t1, BoundingBox& box) const override;
+            bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
+            bool bounding_box(BoundingBox& box, float t0, float t1) const override;
+
+        private:
+
+            Vec3 offset;
+            Ref<Hittable> obj;
     };
 
+    /// Instancing class for rotations on an axis (see the `Translate`
+    /// class for more information on instancing).
     template<Axis axis>
     class Rotate: public Hittable
     {
         public:
 
-            Rotate(const std::shared_ptr<Hittable>& obj, float angle);
+            Rotate(const Ref<Hittable>& obj, float angle);
 
-            virtual bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
+            bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
 
-            virtual bool bounding_box(float t0, float t1, BoundingBox& box) const override
+            bool bounding_box(BoundingBox& box, float t0, float t1) const override
             {
                 box = this->box;
 
                 return hadbox;
             }
 
-        public:
+        private:
 
-            std::shared_ptr<Hittable> obj;
-            BoundingBox box;
+            Ref<Hittable> obj;
+            BoundingBox box {};
             bool hadbox;
             float sin, cos;
     };
 
+    /// Instancing class for flipping the object's normals (see the
+    /// `Translate` class for more information on instancing).
     class Flip: public Hittable
     {
         public:
 
-            Flip(std::shared_ptr<Hittable> obj): obj(obj) {}
+            explicit Flip(const Ref<Hittable>& obj): obj(obj) {}
 
-            virtual bool hit(const Ray& r, float tmin, float tmax,
+            bool hit(const Ray& r, float tmin, float tmax,
                              HitRecord& rec) const override
             {
                 if(!obj->hit(r, tmin, tmax, rec))
@@ -59,14 +71,17 @@ namespace Ilya
                 return true;
             }
 
-            virtual bool bounding_box(float t0, float t1,
-                                      BoundingBox& box) const override
+            bool bounding_box(BoundingBox& box, float t0, float t1) const override
             {
-                return obj->bounding_box(t0, t1, box);
+                return obj->bounding_box(box, t0, t1);
             }
 
-        public:
+        private:
 
-            std::shared_ptr<Hittable> obj;
+            Ref<Hittable> obj;
     };
+
+    Ref<Translate> translate(const Ref<Hittable>& obj, const Vec3& offset);
+    template<Axis N> Ref<Rotate<N>> rotate(const Ref<Hittable>& obj, float angle);
+    Ref<Flip> flip(const Ref <Hittable>& obj);
 }

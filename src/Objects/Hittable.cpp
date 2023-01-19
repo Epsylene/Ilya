@@ -21,7 +21,7 @@ namespace Ilya
             //  2) Sphere 2 : t1 < t2, so hit() true at t1,
             //      closest_so_far = t1
             //  3) Sphere 3 : t3 > t1, so hit() returns false
-            // The result is that the recorded position, normals, etc
+            // The result is that the recorded position, normals, etc.
             // are the ones for the closest sphere, which is what is
             // expected physically.
             if(obj->hit(r, tmin, closest_so_far, temp_rec))
@@ -35,7 +35,7 @@ namespace Ilya
         return hit;
     }
 
-    bool HittableList::bounding_box(float t0, float t1, BoundingBox& box) const
+    bool HittableList::bounding_box(BoundingBox& box, float t0, float t1) const
     {
         if(objects.empty())
             return false;
@@ -45,7 +45,7 @@ namespace Ilya
 
         for (auto& object: objects)
         {
-            if(!object->bounding_box(t0, t1, objbox))
+            if(!object->bounding_box(objbox, t0, t1))
                 return false;
 
             box = first_box ? objbox : surrounding_box(box, objbox);
@@ -109,7 +109,7 @@ namespace Ilya
         return c0 + (t - t0)/(t1 - t0) * (c1 - c0);
     }
 
-    bool Sphere::bounding_box(float t0, float t1, BoundingBox& box) const
+    bool Sphere::bounding_box(BoundingBox& box, float t0, float t1) const
     {
         BoundingBox box1 {center(t0) - Vec3{radius}, center(t0) + Vec3{radius}};
         BoundingBox box2 {center(t1) - Vec3{radius}, center(t1) + Vec3{radius}};
@@ -118,28 +118,37 @@ namespace Ilya
         return true;
     }
 
-    template<int N> requires (N < 3)
-    inline bool box_compare(const std::shared_ptr<Hittable>& a, const std::shared_ptr<Hittable> b)
+    /// Return whether the hittable `a` is to the left (true) or the
+    /// right (false) of `b` on the axis N.
+    template<unsigned N> requires (N < 3)
+    inline bool box_compare(const Ref<Hittable>& a, const Ref<Hittable>& b)
     {
+        // Compare two boxes.
         BoundingBox box_a {}, box_b {};
 
-        if(!a->bounding_box(0, 0, box_a) || !b->bounding_box(0, 0, box_b))
-            std::cerr << "No bounding box in BVHnode constructor.";
+        // First check if the hittables `a` and `b` actually have bounding
+        // boxes (that is, if one or both of them are not empty).
+        if(!a->bounding_box(box_a, 0, 0) || !b->bounding_box(box_b, 0, 0))
+            error("No bounding box in BVHnode constructor.\n");
 
+        // Then, compare: on the axis N, is the surrounding box of `a`
+        // more to the left than that of `b` ?
         return box_a.min[N] < box_b.min[N];
     }
 
-    BVHnode::BVHnode(const std::vector<std::shared_ptr<Hittable>>& objs, size_t start, size_t end, float t0,
-                     float t1)
+    BVHnode::BVHnode(const std::vector<Ref<Hittable>>& objs, size_t start,
+                     size_t end, float t0, float t1)
     {
-        // The bounding volume hierarchy (BVH) is a structure that constructs
-        // a tree from a set of objects. To do so, we need a comparator
-        // function, which works on a per-axis basis; the axis is chosen
-        // randomly as the constructor keeps being called when constructing
-        // the tree (in other words, node splitting is done each time along
-        // one random axis).
+        // The bounding volume hierarchy (BVH) is a structure that
+        // constructs a tree from a set of objects, by dividing space
+        // recursively in "left" and "right" boxes, which contain
+        // objects of the scene. To do so, we need a comparator
+        // function, which works on a per-axis basis: the axis is chosen
+        // randomly as the constructor keeps being called when
+        // constructing the tree (in other words, node splitting is done
+        // each time along one random axis).
         auto objects = objs;
-        int axis = random_int(0, 2);
+        auto axis = Random::uint(0, 2);
         auto comparator = (axis == 0) ? box_compare<0>
                                       : (axis == 1) ? box_compare<1>
                                                     : box_compare<2>;
@@ -147,62 +156,77 @@ namespace Ilya
         size_t span = end - start;
         if(span == 1)
         {
+            // If there is only one object left, there is only one leaf
+            // in this branch of the tree.
             left = right = objects[start];
         }
         else if(span == 2)
         {
+            // If there are 2 objects, we can compare them directly:
             if(comparator(objects[start], objects[start + 1]))
             {
+                // If the comparator returns true, the first parameter is
+                // the left leaf and the second parameter the right leaf.
                 left = objects[start];
                 right = objects[start + 1];
             }
             else
             {
+                // If it returns false, it is the other way around.
                 left = objects[start + 1];
                 right = objects[start];
             }
         }
         else
         {
-            // We work with a top-down method to construct the BVH tree:
-            // first sort the objects using the comparator (so that the
-            // array ordering matches the spatial ordering), split the tree
-            // in two nodes, and repeat until all cases have been covered.
+            // For lists of 3 or more objects, we work with a top-down
+            // method to construct the BVH tree: first sort the objects
+            // using the comparator (so that the array ordering matches
+            // the spatial ordering), split the tree in two nodes, and
+            // repeat until all cases have been covered (that is, until
+            // the if clauses are reduced to the 1- or 2-object cases).
+            // Eventually, we are left with the leftmost and rightmost
+            // objects of the scene as the 'left' and 'right' leaves.
             std::sort(objects.begin() + start, objects.begin() + end, comparator);
 
-            auto mid = start + span/2;
-            left = std::make_shared<BVHnode>(objects, start, mid, t0, t1);
-            right = std::make_shared<BVHnode>(objects, mid, end, t0, t1);
+            auto half = start + span/2;
+            left = std::make_shared<BVHnode>(objects, start, half, t0, t1);
+            right = std::make_shared<BVHnode>(objects, half, end, t0, t1);
         }
 
+        // Once the left and right nodes are found, check that they are
+        // not empty...
         BoundingBox box_left {}, box_right {};
-        if(!left->bounding_box(t0, t1, box_left)
-           || !right->bounding_box(t0, t1, box_right))
+        if(!left->bounding_box(box_left, t0, t1)
+           || !right->bounding_box(box_right, t0, t1))
         {
-            std::cerr << "No bounding box in BVHnode constructor.";
+            error("No bounding box in BVHnode constructor.");
         }
 
+        // ...and create the BVH tree surrounding box from the left and
+        // right boxes.
         box = surrounding_box(box_left, box_right);
     }
 
     bool BVHnode::hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const
     {
+        // If the ray doesn't hit the surrounding box, it won't hit
+        // anything.
         if(!box.hit(r, tmin, tmax))
             return false;
 
-        // Check if the ray has hit the left node (or, more accurately,
-        // "could hit the left node in the [tmin, tmax] interval). If it has,
-        // the 'tmax' for the right node is the time stored in the hit
-        // record (if the first node has been calculated to be hit at a
-        // certain time, the second node can't be hit after that point
-        // in time).
+        // If the ray hits the left node in the given time interval, the
+        // maximum time at which the right node could be hit is the time
+        // at which the left node has been (that is, `rec.t`): a ray
+        // coming from the right could only have hit the left box if it
+        // has hit the right one before.
         bool hit_left = left->hit(r, tmin, tmax, rec);
         bool hit_right = right->hit(r, tmin, hit_left ? rec.t : tmax, rec);
 
         return hit_left || hit_right;
     }
 
-    bool BVHnode::bounding_box(float t0, float t1, BoundingBox& box) const
+    bool BVHnode::bounding_box(BoundingBox& box, float t0, float t1) const
     {
         box = this->box;
         return true;
@@ -211,7 +235,12 @@ namespace Ilya
     template<Axis ax0, Axis ax1> requires (ax0 < ax1)
     bool Rectangle<ax0, ax1>::hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const
     {
-        float t = -1.f;
+        // Calculate the time at which the ray hits the rectangle: it is
+        // the distance between the rectangle and the ray origin (k -
+        // r.orig.*), divided by the velocity of the ray (r.dir.*), a ray
+        // being defined as r = a + b*t, where `a` is the origin and `b`
+        // the direction, which has the units of a velocity.
+        float t;
         if constexpr(XY<ax0, ax1>)
             t = (k - r.orig.z)/r.dir.z;
         else if constexpr(XZ<ax0, ax1>)
@@ -219,9 +248,13 @@ namespace Ilya
         else if constexpr(YZ<ax0, ax1>)
             t = (k - r.orig.x)/r.dir.x;
 
+        // After checking that t is in the time interval...
         if(t < tmin || t > tmax)
             return false;
 
+        //...we can get the point where the ray hit the rectangle, check
+        // that it is not out of its physical bounds, and calculate its
+        // UV coordinates as well as the surface normal.
         auto [x, y, z] = r.at(t);
         if constexpr(XY<ax0, ax1>)
         {
@@ -260,8 +293,8 @@ namespace Ilya
 
     template<Axis ax0, Axis ax1>
     requires (ax0 < ax1)bool
-    Rectangle<ax0, ax1>::bounding_box(float t0, float t1,
-                                      BoundingBox& box) const
+    Rectangle<ax0, ax1>::bounding_box(BoundingBox& box, float t0,
+                                      float t1) const
     {
         // The bounding box cannot have zero width, so we leave a little
         // room on the normal axis.
@@ -282,27 +315,27 @@ namespace Ilya
         Vec3 random_point {};
 
         if constexpr(XY<ax0, ax1>)
-            random_point = {random_float(r0, r1), random_float(s0, s1), k};
+            random_point = {Random::rfloat(r0, r1), Random::rfloat(s0, s1), k};
         else if constexpr(XZ<ax0, ax1>)
-            random_point = {random_float(r0, r1), k, random_float(s0, s1) };
+            random_point = {Random::rfloat(r0, r1), k, Random::rfloat(s0, s1) };
         else if constexpr(YZ<ax0, ax1>)
-            random_point = {k, random_float(r0, r1), random_float(s0, s1) };
+            random_point = {k, Random::rfloat(r0, r1), Random::rfloat(s0, s1) };
 
         return random_point - origin;
     }
 
     template<Axis ax0, Axis ax1>
     requires (ax0 < ax1)
-    float Rectangle<ax0, ax1>::pdf_value(const Vec3& origin, const Vec3& dir)
+    float Rectangle<ax0, ax1>::pdf_value(const Ray& r)
     {
-        // Check that the ray {origin, direction} hits the rectangle (in
-        // other words, that it is directed towards it): if it doesn't,
-        // return 0, because we want this PDF to be a random distribution
-        // directed at this rectangle (a light, for example, which we will
-        // want to "attract" rays, in order to avoid repetitive and noisy
-        // ray bounces around the box).
+        // Check that the ray hits the rectangle (in other words, that
+        // it is directed towards it): if it doesn't, return 0, because
+        // we want this PDF to be a random distribution directed at this
+        // rectangle (a light, for example, which we will want to
+        // "attract" rays, in order to avoid repetitive and noisy ray
+        // bounces around the box).
         HitRecord rec;
-        if(!hit({origin, dir}, 0.001, infinity, rec))
+        if(!hit(r, 0.001, infinity, rec))
             return 0;
 
         // If it does hit the rectangle, we need the PDF for the random
@@ -321,8 +354,8 @@ namespace Ilya
         // both probabilities must be the same, so pdf_val*dw = dA/A and
         // finally pdf_val = d^2/(cos(alpha)*A).
         auto area = (r1-r0)*(s1-s0);
-        auto d = rec.t * length(dir);
-        auto cos = std::abs(dot(dir, rec.normal) / length(dir));
+        auto d = rec.t * length(r.dir);
+        auto cos = std::abs(dot(r.dir, rec.normal) / length(r.dir));
 
         return d*d/(cos*area);
     }
@@ -332,7 +365,7 @@ namespace Ilya
     template class Rectangle<X, Z>;
     template class Rectangle<Y, Z>;
 
-    Box::Box(const Vec3& p0, const Vec3& p1, std::shared_ptr<Material> mat):
+    Box::Box(const Vec3& p0, const Vec3& p1, Ref<Material> mat):
         p0(p0), p1(p1)
     {
         sides.add(make_shared<Rectangle<X, Y>>(p0.x, p0.y, p1.x, p1.y, p1.z, mat));
@@ -376,7 +409,7 @@ namespace Ilya
         // travels inside the volume. For any ray entering the volume,
         // the probability that it scatters after a small distance dl
         // is dP = C.dl, where C is the density of the volume. However,
-        // because this volume is comprised of volatile media, like fog
+        // because this volume is composed of volatile media, like fog
         // or mist, this density can be written as C = D.P, where D is
         // the actual (physical) density of the volume and P the
         // probability of "finding" the matter in the distance dl. Then
@@ -384,7 +417,7 @@ namespace Ilya
         // integrating ln(P) = D.l, which gives us the distance.
         const auto ray_length = length(r.dir);
         const auto dist_in_boundary = (rec2.t - rec1.t) * ray_length;
-        const auto hit_distance = -std::log(random_float()) / density;
+        const auto hit_distance = -std::log(Random::rfloat()) / density;
 
         if(hit_distance > dist_in_boundary)
             return false;

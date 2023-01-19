@@ -2,7 +2,6 @@
 #pragma once
 
 #include "ilpch.hpp"
-#include <fmt/core.h>
 
 #define macro_str(a) #a
 #define xmacro_str(a) macro_str(a)
@@ -11,6 +10,8 @@ namespace fs = std::filesystem;
 
 namespace Ilya
 {
+    template<typename T> using Ref = std::shared_ptr<T>;
+
     static const fs::path res_path { xmacro_str(ILYA_RES_DIR) };
     static const fs::path app_path { xmacro_str(ILYA_APP_DIR) };
 
@@ -18,15 +19,16 @@ namespace Ilya
     static const float pi = static_cast<float>(M_PI);
     static const float epsilon = std::numeric_limits<float>::epsilon();
 
-    inline float random_float(float min = 0.f, float max = 1.f)
+    template<typename... T>
+    inline void print(fmt::format_string<T...> msg, T&&... args)
     {
-        auto r = rand() / (RAND_MAX + 1.f);
-        return min + (max - min)*r;
+        fmt::print(msg, args...);
     }
 
-    inline int random_int(int min, int max)
+    template<typename... T>
+    inline void error(std::string_view msg, T&&... args)
     {
-        return static_cast<int>(random_float(min, max));
+        fmt::print(fmt::fg(fmt::color::red), msg, args...);
     }
 
     inline float radians(float degrees)

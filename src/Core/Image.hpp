@@ -1,7 +1,6 @@
 
 #pragma once
 
-#include "Core.hpp"
 #include "Utils/Color.hpp"
 
 namespace Ilya

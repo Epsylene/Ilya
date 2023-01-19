@@ -1,5 +1,6 @@
 
 #include "Vector3.hpp"
+#include "Core.hpp"
 
 namespace Ilya
 {

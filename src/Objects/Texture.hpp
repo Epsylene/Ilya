@@ -8,7 +8,6 @@
 
 namespace Ilya
 {
-
     class Texture
     {
         public:
@@ -16,35 +15,37 @@ namespace Ilya
             virtual Color val(float u, float v, const Vec3& p) const = 0;
     };
 
+    /// Solid (uniform) color texture
     class SolidColor: public Texture
     {
         public:
-
-            Color color;
 
             explicit SolidColor(const Color& c): color(c) {}
             SolidColor(float r, float g, float b):
                     color(r, g, b) {}
 
-            virtual Color val(float u, float v, const Vec3& p) const override
+            Color val(float u, float v, const Vec3& p) const override
             {
                 return color;
             }
+
+        public:
+
+            Color color;
     };
 
+    /// Checker texture of two subtextures
     class CheckerTexture: public Texture
     {
         public:
 
-            std::shared_ptr<Texture> even, odd;
-
-            CheckerTexture(std::shared_ptr<Texture> even, std::shared_ptr<Texture> odd):
+            CheckerTexture(const Ref<Texture>& even, const Ref<Texture>& odd):
                     even(even), odd(odd) {}
 
             CheckerTexture(Color c1, Color c2): even(std::make_shared<SolidColor>(c1)),
                                                 odd(std::make_shared<SolidColor>(c2)) {}
 
-            virtual Color val(float u, float v, const Vec3& p) const override
+            Color val(float u, float v, const Vec3& p) const override
             {
                 auto sines = std::sin(10*p.x)*std::sin(10*p.y)*std::sin(10*p.z);
 
@@ -53,30 +54,34 @@ namespace Ilya
                 else
                     return odd->val(u, v, p);
             }
+
+        public:
+
+            Ref<Texture> even, odd;
     };
 
+    /// Perlin noise texture
     class NoiseTexture: public Texture
     {
         public:
 
-            Perlin perlin;
-            float scale;
+            explicit NoiseTexture(float scale): scale(scale) {}
 
-            explicit NoiseTexture(float scale = 5.f): scale(scale) {}
-
-            virtual Color val(float u, float v, const Vec3& p) const override
+            Color val(float u, float v, const Vec3& p) const override
             {
                 return 0.5f * Color{1, 1, 1} * (1 + std::sin(scale*p.z + 10*perlin.turbulence(p)));
             }
+
+        public:
+
+            Perlin perlin;
+            float scale;
     };
 
+    /// Texture that is an image
     class ImageTexture: public Texture
     {
         public:
-
-            unsigned char* data;
-            int width, height, bytes_per_scanline;
-            const static int bytes_per_pixel = 3;
 
             explicit ImageTexture(const std::string& path)
             {
@@ -86,16 +91,15 @@ namespace Ilya
                 data = stbi_load(fullpath.c_str(), &width, &height, &components_per_pixel, bytes_per_pixel);
                 if(!data)
                 {
-                    std::cerr << "ERROR: could not load texture image file at path " << fullpath << ".\n";
+                    error("ERROR: could not load texture image file at path {}\n", fullpath);
                 }
 
                 bytes_per_scanline = bytes_per_pixel * width;
             }
 
-            virtual Color val(float u, float v, const Vec3& p) const override
+            Color val(float u, float v, const Vec3& p) const override
             {
-                if(!data)
-                    return {};
+                if(!data) return {};
 
                 // Clamp (u, v) to the texture coordinate range
                 // [0,1]x[1,0].
@@ -120,5 +124,11 @@ namespace Ilya
                 auto pixel = data + i*bytes_per_pixel + j*bytes_per_scanline;
                 return Color(pixel[0], pixel[1], pixel[2]) / 255.f;
             }
+
+        public:
+
+            unsigned char* data;
+            int width, height, bytes_per_scanline;
+            const static int bytes_per_pixel = 3;
     };
 }

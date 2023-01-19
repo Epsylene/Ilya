@@ -1,8 +1,6 @@
 
 #pragma once
 
-#include "Core.hpp"
-
 namespace Ilya
 {
     struct Vector3
@@ -121,13 +119,6 @@ namespace Ilya
             else if(idx == 2) return z;
             else static_assert("Index must be between 0 and 2.");
         }
-
-        inline static Vector3 random(float min = 0.f, float max = 1.f)
-        {
-            return {random_float(min, max),
-                    random_float(min, max),
-                    random_float(min, max) };
-        }
     };
 
     using Vec3 = Vector3;
@@ -147,16 +138,16 @@ namespace Ilya
 
     bool near_zero(const Vector3& vec);
 
+    /// Orthonormal base of 3 vectors.
     class ONB
     {
         public:
 
+            /// Constructs an orthonormal base from the vector w.
             explicit ONB(const Vec3& w);
 
             Vec3 local(float a, float b, float c) const
             {
-//                auto p = a*u + b*v + c*w;
-//                std::cout << p.x << "\t" << p.y << "\t" << p.z << "\n";
                 return a*u + b*v + c*w;
             }
 

@@ -1,5 +1,7 @@
 
 #include "Renderer.hpp"
+#include "Utils/PDF.hpp"
+#include "Objects/Instances.hpp"
 
 namespace Ilya
 {
@@ -8,8 +10,8 @@ namespace Ilya
                         samples_per_pixel(samples), depth(depth)
     {}
 
-    Color Renderer::ray_color(const Ray& r, std::shared_ptr<Hittable> light,
-                        const Color& background, int depth)
+    Color Renderer::ray_color(const Ray& r, const Ref <Hittable>& light,
+                              const Color& background, int depth)
     {
         HitRecord rec {};
 
@@ -72,7 +74,7 @@ namespace Ilya
                          * ray_color(scattered, light, background, depth - 1) / pdf_val;
     }
 
-    void Renderer::render(const Camera& cam, std::shared_ptr<Hittable> light)
+    void Renderer::render(const Camera& cam, const Ref<Hittable>& light)
     {
         // We render the image from top to bottom, because the image is
         // stored in memory from bottom to top. This is because the
@@ -80,40 +82,42 @@ namespace Ilya
         // bottom-left one.
         for (int j = img.height - 1; j >= 0; --j)
         {
-            fmt::print("Scanlines remaining: {}\n", j);
+            print("Scanlines remaining: {}\n", j);
 
             for (int i = 0; i < img.width; ++i)
             {
                 Color pixel_Color {};
 
+                // Instead of sending a single ray per pixel, send a
+                // bunch each time in a small region around it, and add
+                // all the colors together. This is called "sampling",
+                // and the blurry effect that it gives at the edges,
+                // where colors change rapidly from one pixel to another
+                // is called "antialiasing" ("aliasing" being the name
+                // to the staircase look of pixels before
+                // postprocessing).
                 for (int s = 0; s < samples_per_pixel; ++s)
                 {
-                    auto u = (i + random_float()) / (img.width - 1);
-                    auto v = (j + random_float()) / (img.height - 1);
+                    auto u = (i + Random::rfloat()) / (img.width - 1);
+                    auto v = (j + Random::rfloat()) / (img.height - 1);
 
                     pixel_Color += ray_color(cam.ray(u, v), light, {}, depth);
                 }
 
-                // Colors are scaled inversely proportional to the
-                // samples per pixel: antialiasing works by taking a
-                // pixel and sampling a great number of neighboring
-                // pixels into it; this gives a blurry effect at the
-                // edges, where colours change rapidly from one pixel to
-                // another. However, because of the sampling, we have to
-                // tone down each pixel's Color, or else the resulting
-                // antialised pixel will be way brighter than it
-                // actually is. However, our image is darker than it
-                // should be, for another reason. Human eyes perceive
-                // light in a non-linear fashion, following an
-                // approximate power function. To account for this,
-                // software perform what is known as gamma correction,
-                // elevating the input at a power that lies tipically in
-                // the range 1.8 to 2.2. Because image viewers expect
-                // images to have been gamma-corrected, we need first to
-                // inverse gamma-correct them; supposing that gamma = 2,
-                // we need to elevate to the power 1/2.
-                auto scale = 1.f/samples_per_pixel;
-                pixel_Color = sqrt(pixel_Color * scale);
+                // Because we have added as many colors together as
+                // sample rays sent, we have to average the result by
+                // the number of samples. However, our image is still
+                // not correct: it shows darker than it should. Human
+                // eyes perceive light in a non-linear fashion,
+                // following an approximate power function. To account
+                // for this, software perform what is known as gamma
+                // correction, elevating the input at a power that lies
+                // tipically in the range 1.8 to 2.2. Because image
+                // viewers expect images to have been gamma-corrected,
+                // we need first to inverse gamma-correct them;
+                // supposing that gamma = 2, we then need to elevate
+                // colors to the power of 1/2.
+                pixel_Color = sqrt(pixel_Color/samples_per_pixel);
 
                 img.write(pixel_Color);
             }

@@ -14,28 +14,35 @@ namespace Ilya
     struct ScatterRecord
     {
         Ray ray {};
-        bool is_specular;
         Color albedo {};
-        std::shared_ptr<PDF> pdf;
+        bool is_specular;
+        Ref<PDF> pdf;
     };
 
     class Material
     {
         public:
 
+            /// Color emitted by the material.
             virtual Color emitted(float u, float v, const Vec3& p,
                                   const HitRecord& rec) const
             {
                 return {};
             }
 
+            /// Function that tells if the ray `in` scatters off the
+            /// surface of the material and puts that information on
+            /// the scatter and hit records.
             virtual bool scatter(const Ray& in, ScatterRecord& scatter,
                                  const HitRecord& rec) const
             {
                 return false;
             }
 
-            virtual float scattering_pdf(const Ray& in, const Ray& out, const HitRecord& rec) const
+            /// Probability for the ray `in` to scatter as `out`, as per
+            /// the material PDF.
+            virtual float scattering_pdf(const Ray& in, const Ray& out,
+                                         const HitRecord& rec) const
             {
                 return 0;
             }
@@ -48,7 +55,7 @@ namespace Ilya
         public:
 
             explicit Lambertian(const Color& albedo): albedo(std::make_shared<SolidColor>(albedo)) {}
-            explicit Lambertian(const std::shared_ptr<Texture>& tex): albedo(tex) {}
+            explicit Lambertian(const Ref<Texture>& tex): albedo(tex) {}
 
             bool scatter(const Ray& in, ScatterRecord& scatter,
                          const HitRecord& rec) const override;
@@ -58,7 +65,7 @@ namespace Ilya
 
         public:
 
-            std::shared_ptr<Texture> albedo;
+            Ref<Texture> albedo;
     };
 
     /// Specular reflection: the rays scatter off the surface at the same
@@ -80,6 +87,20 @@ namespace Ilya
             float fuziness;
     };
 
+    /// In physics, dielectrics are electrical insulators that can be
+    /// polarised by an applied electric field (that is, materials where
+    /// the electric current does not flow freely, but that under the
+    /// action of an external field start producing their own). When an
+    /// electromagnetic wave (like light) hits the material, it is
+    /// divided in two parts, one that is reflected off the surface, and
+    /// one that is refracted inside the material. The first element is
+    /// the only one happening in conductors, because of the free
+    /// charges on the surface that create a wave which interferes
+    /// destructively below the surface (this almost-perfect reflection
+    /// is also the reason why metals are shiny). The second element is
+    /// the one allowing for a number of dielectrics to be transparent:
+    /// light is able to pass through the material, to an extent, making
+    /// things visible on both sides.
     class Dielectric: public Material
     {
         public:
@@ -106,11 +127,13 @@ namespace Ilya
             }
     };
 
+    /// A material that produces diffuse light, that is, light going in
+    /// all directions in a random way.
     class DiffuseLight: public Material
     {
         public:
 
-            explicit DiffuseLight(const std::shared_ptr<Texture>& emitter):
+            explicit DiffuseLight(const Ref<Texture>& emitter):
                 emitter(emitter) {}
 
             explicit DiffuseLight(const Color& c):
@@ -122,6 +145,14 @@ namespace Ilya
             bool scatter(const Ray& in, ScatterRecord& scatter,
                     const HitRecord& rec) const override
             {
+                // If it's a light, we don't want rays to scatter off
+                // it, because that's where they actually physically
+                // come from (the whole point of raytracing being that
+                // rays are sent from the camera to hit objects and
+                // scatter off surfaces up until they hit a light
+                // source, at which point a light path has been found,
+                // and color can be output on the image for the
+                // corresponding pixel).
                 return false;
             }
 
@@ -130,9 +161,13 @@ namespace Ilya
 
         public:
 
-            std::shared_ptr<Texture> emitter;
+            Ref<Texture> emitter;
     };
 
+    /// A material is isotropic if it sends rays around uniformly. This is
+    /// the case for constant density mediums, for example, like some smoke
+    /// or a fog, which are traversed by rays until they hit a particle of
+    /// the medium and scatter in a random direction.
     class Isotropic: public Material
     {
         public:
@@ -140,7 +175,7 @@ namespace Ilya
             explicit Isotropic(const Color& c):
                 albedo(std::make_shared<SolidColor>(c)) {}
 
-            explicit Isotropic(const std::shared_ptr<Texture>& tex):
+            explicit Isotropic(const Ref<Texture>& tex):
                 albedo(tex) {}
 
             bool scatter(const Ray& in, ScatterRecord& scatter,
@@ -148,6 +183,6 @@ namespace Ilya
 
         public:
 
-            std::shared_ptr<Texture> albedo;
+            Ref<Texture> albedo;
     };
 }

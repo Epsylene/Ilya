@@ -1,8 +1,6 @@
 
 #pragma once
 
-#include "Core.hpp"
-
 #include "Utils/Vector3.hpp"
 #include "Ray.hpp"
 #include "Material.hpp"
@@ -10,13 +8,18 @@
 
 namespace Ilya
 {
+    /// Struct used to carry information about the point where the ray
+    /// hit the surface (p), the normal to the surface at this point
+    /// (normal), the time of impact (t), the UV coordinates of the
+    /// surface at this point (u, v), whether it is a front face or not
+    /// (frontFace), and the surface's material (material).
     struct HitRecord
     {
         Vec3 p, normal;
         float t;
         float u, v;
         bool frontFace;
-        std::shared_ptr<Material> material;
+        Ref<Material> material;
 
         inline void face_normal(const Ray& r, const Vec3& outNormal)
         {
@@ -33,81 +36,100 @@ namespace Ilya
     {
         public:
 
-            virtual bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const = 0;
-            virtual bool bounding_box(float t0, float t1, BoundingBox& box) const = 0;
+            /// Tells whether the ray `r` hits the object between `tmin`
+            /// and `tmax`, and puts that information in the hit record
+            /// `rec`.
+            virtual bool hit(const Ray& r, float tmin, float tmax,
+                             HitRecord& rec) const = 0;
 
+            /// Creates a bounding box `box` around the object between
+            /// times t0 and t1.
+            virtual bool bounding_box(BoundingBox& box, float t0, float t1) const = 0;
+
+            /// Returns a random vector between `origin` and a point on
+            /// the surface of the object.
             virtual Vec3 random_point(const Vec3& origin) const
             {
                 return {};
             }
 
-            virtual float pdf_value(const Vec3& origin, const Vec3& dir)
+            /// Returns the probability for the ray `r` to hit the
+            /// object on a point of the surface.
+            virtual float pdf_value(const Ray& r)
             {
                 return 0.f;
             }
     };
 
+    /// List of hittables, basically an improved vector of `Hittable`
+    /// references.
     class HittableList: public Hittable
     {
         public:
 
-            std::vector<std::shared_ptr<Hittable>> objects;
-
             HittableList() = default;
 
-            explicit HittableList(const std::shared_ptr<Hittable>& object)
+            explicit HittableList(const Ref<Hittable>& object)
             {
                 objects.push_back(object);
             }
 
-            void add(const std::shared_ptr<Hittable>& object)
+            void add(const Ref<Hittable>& object)
             {
                 objects.push_back(object);
             }
 
-            virtual bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
+            bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
+            bool bounding_box(BoundingBox& box, float t0, float t1) const override;
 
-            virtual bool
-            bounding_box(float t0, float t1, BoundingBox& box) const override;
+        public:
+
+            std::vector<Ref<Hittable>> objects;
     };
 
+    /// Generates a BVH (Bounding Volume Hierarchy),
     class BVHnode: public Hittable
     {
         public:
 
-            std::shared_ptr<Hittable> left, right;
+            explicit BVHnode(const HittableList& list, float t0 = 0.f,
+                             float t1 = 1.f): BVHnode(list.objects, 0,
+                                                      list.objects.size(),
+                                                      t0, t1) {}
+
+            BVHnode(const std::vector<Ref<Hittable>>& objects,
+                    size_t start, size_t end, float t0, float t1);
+
+            bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
+            bool bounding_box(BoundingBox& box, float t0, float t1) const override;
+
+        private:
+
+            Ref<Hittable> left, right;
             BoundingBox box;
-
-            explicit BVHnode(const HittableList& list, float t0 = 0.f, float t1 = 1.f):
-                    BVHnode(list.objects, 0, list.objects.size(), t0, t1) {}
-
-            BVHnode(const std::vector<std::shared_ptr<Hittable>>& objects, size_t start, size_t end, float t0, float t1);
-
-            virtual bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
-
-            virtual bool bounding_box(float t0, float t1, BoundingBox& box) const override;
     };
 
     class Sphere: public Hittable
     {
         public:
 
+            Sphere(const Vec3& center, float radius, const Ref<Material>& mat):
+                    c0(center), c1(center), t0(0.f), t1(1.f), radius(radius), material(mat) {}
+
+            Sphere(const Vec3& c0, const Vec3& c1, float t0, float t1, float radius, const Ref<Material>& mat):
+                    c0(c0), c1(c1), t0(t0), t1(t1), radius(radius), material(mat) {}
+
+            bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
+            bool bounding_box(BoundingBox& box, float t0, float t1) const override;
+
+            Vec3 center(float t) const;
+
+        public:
+
             float t0, t1;
             Vec3 c0, c1;
             float radius;
-            std::shared_ptr<Material> material;
-
-            Sphere() = default;
-            Sphere(const Vec3& center, float radius, const std::shared_ptr<Material>& mat):
-                    c0(center), c1(center), t0(0.f), t1(1.f), radius(radius), material(mat) {}
-
-            Sphere(const Vec3& c0, const Vec3& c1, float t0, float t1, float radius, const std::shared_ptr<Material>& mat):
-                    c0(c0), c1(c1), t0(t0), t1(t1), radius(radius), material(mat) {}
-
-            virtual bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
-            virtual bool bounding_box(float t0, float t1, BoundingBox& box) const override;
-
-            Vec3 center(float t) const;
+            Ref<Material> material;
 
         private:
 
@@ -147,59 +169,63 @@ namespace Ilya
         public:
 
             Rectangle(float r0, float s0, float r1, float s1, float k,
-                      const std::shared_ptr<Material>& mat):
+                      const Ref<Material>& mat):
                       r0(r0), s0(s0), r1(r1), s1(s1), k(k), material(mat) {}
 
-            virtual bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
-            virtual bool bounding_box(float t0, float t1, BoundingBox& box) const override;
-            virtual Vec3 random_point(const Vec3& origin) const override;
-            virtual float pdf_value(const Vec3& origin, const Vec3& dir) override;
+            bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
+            bool bounding_box(BoundingBox& box, float t0, float t1) const override;
+            Vec3 random_point(const Vec3& origin) const override;
+            float pdf_value(const Ray& r) override;
 
         public:
 
             float r0, s0, r1, s1, k;
-            std::shared_ptr<Material> material;
+            Ref<Material> material;
     };
 
     class Box: public Hittable
     {
         public:
 
-            Vec3 p0, p1;
-            HittableList sides;
+            Box(const Vec3& p0, const Vec3& p1, Ref<Material> mat);
 
-            Box(const Vec3& p0, const Vec3& p1, std::shared_ptr<Material> mat);
+            bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
 
-            virtual bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
-
-            virtual bool bounding_box(float t0, float t1, BoundingBox& box) const override
+            bool bounding_box(BoundingBox& box, float t0, float t1) const override
             {
                 box = {p0, p1};
 
                 return true;
             }
+
+        public:
+
+            Vec3 p0, p1;
+            HittableList sides;
     };
 
     class ConstantMedium: public Hittable
     {
         public:
 
-            float density;
-            std::shared_ptr<Hittable> boundary;
-            std::shared_ptr<Material> phase_func;
-
-            ConstantMedium(const std::shared_ptr<Hittable>& boundary,
-                           const std::shared_ptr<Texture>& tex, float density):
+            ConstantMedium(const Ref<Hittable>& boundary,
+                           const Ref<Texture>& tex, float density):
                            boundary(boundary), phase_func(std::make_shared<Isotropic>(tex)), density(density) {}
 
-            ConstantMedium(std::shared_ptr<Hittable> boundary, const Color& c, float density):
+            ConstantMedium(const Ref<Hittable>& boundary, const Color& c, float density):
                     ConstantMedium(boundary, std::make_shared<SolidColor>(c), density) {}
 
-            virtual bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
+            bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
 
-            virtual bool bounding_box(float t0, float t1, BoundingBox& box) const override
+            bool bounding_box(BoundingBox& box, float t0, float t1) const override
             {
-                return boundary->bounding_box(t0, t1, box);
+                return boundary->bounding_box(box, t0, t1);
             }
+
+        public:
+
+            float density;
+            Ref<Hittable> boundary;
+            Ref<Material> phase_func;
     };
 }

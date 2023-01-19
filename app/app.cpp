@@ -10,10 +10,9 @@ using namespace Ilya;
 
 int main()
 {
-
     // Create the camera
     Camera cam {{278, 278, -800}, {278, 278, 0}, {0, 1, 0}, 0.f, 10.f, 40.f, 1.f};
-    const uint32_t width = 600;
+    const uint32_t width = 200;
     const uint32_t height = static_cast<int>(width / cam.aspect);
     const int samples_per_pixel = 200;
     const int depth = 25;
@@ -36,16 +35,16 @@ int main()
     world.add(std::make_shared<Rectangle<X, Y>>(0, 0, 555, 555, 555, white));
 
     std::shared_ptr<Hittable> light = std::make_shared<Rectangle<X, Z>>(213, 227, 343, 332, 554, light_mat);
-    world.add(std::make_shared<Flip>(light));
+    world.add(flip(light));
 
     // Create and place the boxes
     std::shared_ptr<Hittable> box1 = std::make_shared<Box>(Vec3{0, 0, 0}, Vec3{165, 330, 165}, metal);
-    box1 = std::make_shared<Rotate<Y>>(box1, 15);
-    box1 = std::make_shared<Translate>(box1, Vec3{265,0,295});
+    box1 = rotate<Y>(box1, 15);
+    box1 = translate(box1, {265, 0, 295});
 
     std::shared_ptr<Hittable> box2 = std::make_shared<Box>(Vec3{0,0,0}, Vec3{165,165,165}, white);
-    box2 = std::make_shared<Rotate<Y>>(box2, -18);
-    box2 = std::make_shared<Translate>(box2, Vec3{130,0,65});
+    box2 = rotate<Y>(box2, -18);
+    box2 = translate(box2, {130, 0, 65});
 
     world.add(box1);
     world.add(box2);
