@@ -22,12 +22,11 @@ namespace Ilya
         // A by 'offset' is the same as leaving the object A where it is
         // and translating all the incoming rays by '-offset'; this is
         // what is done here.
-        Ray newr {r.orig - offset, r.dir, r.cast_time};
-        if(!obj->hit(newr, tmin, tmax, rec))
+        Ray translated_r {r.orig - offset, r.dir, r.cast_time};
+        if(!obj->hit(translated_r, tmin, tmax, rec))
             return false;
 
         rec.p += offset;
-        rec.face_normal(newr, rec.normal);
 
         return true;
     }

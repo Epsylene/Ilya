@@ -20,7 +20,7 @@ namespace Ilya
             /// Sends a random vector following the PDF distribution.
             virtual Vec3 random_vector() const = 0;
 
-            /// Gives the value of the PDF at the point `dir`.
+            /// Gives the value of the PDF for the vector `dir`.
             virtual float val(const Vec3& dir) const = 0;
     };
 

@@ -12,7 +12,7 @@ int main()
 {
     // Create the camera
     Camera cam {{278, 278, -800}, {278, 278, 0}, {0, 1, 0}, 0.f, 10.f, 40.f, 1.f};
-    const uint32_t width = 200;
+    const uint32_t width = 600;
     const uint32_t height = static_cast<int>(width / cam.aspect);
     const int samples_per_pixel = 200;
     const int depth = 25;

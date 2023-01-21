@@ -336,7 +336,7 @@ namespace Ilya
         // bounces around the box).
         HitRecord rec;
         if(!hit(r, 0.001, infinity, rec))
-            return 0;
+            return 0.f;
 
         // If it does hit the rectangle, we need the PDF for the random
         // incoming vector. Two surfaces might be considered: the first is

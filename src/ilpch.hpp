@@ -10,6 +10,7 @@
 #include <random>
 #include <algorithm>
 #include <filesystem>
+#include <numbers>
 
 #include <fmt/core.h>
 #include <fmt/color.h>

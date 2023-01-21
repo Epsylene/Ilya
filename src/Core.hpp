@@ -16,7 +16,7 @@ namespace Ilya
     static const fs::path app_path { xmacro_str(ILYA_APP_DIR) };
 
     static const float infinity = std::numeric_limits<float>::infinity();
-    static const float pi = static_cast<float>(M_PI);
+    static const float pi = static_cast<float>(std::numbers::pi);
     static const float epsilon = std::numeric_limits<float>::epsilon();
 
     template<typename... T>
