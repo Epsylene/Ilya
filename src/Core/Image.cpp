@@ -27,10 +27,19 @@ namespace Ilya
 
     void Image::write(const Color& color)
     {
-        auto r = static_cast<int>(256 * std::clamp(color.r, 0.f, 0.999f));
-        auto g = static_cast<int>(256 * std::clamp(color.g, 0.f, 0.999f));
-        auto b = static_cast<int>(256 * std::clamp(color.b, 0.f, 0.999f));
+        auto [r, g, b, a] = color;
 
-        img << fmt::format("{} {} {}\n", r, g, b);
+        // Check for NaNs (the one and only time when something isn't
+        // equal to itself).
+        if(r != r) r = 0.f;
+        if(g != g) g = 0.f;
+        if(b != b) b = 0.f;
+
+        // Clamp colors to the [0, 256[ range.
+        r = 256 * std::clamp(r, 0.f, 0.999f);
+        g = 256 * std::clamp(g, 0.f, 0.999f);
+        b = 256 * std::clamp(b, 0.f, 0.999f);
+
+        img << fmt::format("{} {} {}\n", (int)r, (int)g, (int)b);
     }
 }

@@ -82,6 +82,10 @@ namespace Ilya
             bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
             bool bounding_box(BoundingBox& box, float t0, float t1) const override;
 
+            Vec3 random_point(const Vec3& origin) const override;
+
+            float pdf_value(const Ray& r) override;
+
         public:
 
             std::vector<Ref<Hittable>> objects;
@@ -121,6 +125,10 @@ namespace Ilya
 
             bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
             bool bounding_box(BoundingBox& box, float t0, float t1) const override;
+
+            Vec3 random_point(const Vec3& origin) const override;
+
+            float pdf_value(const Ray& r) override;
 
             Vec3 center(float t) const;
 

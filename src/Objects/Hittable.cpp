@@ -55,6 +55,28 @@ namespace Ilya
         return true;
     }
 
+    Vec3 HittableList::random_point(const Vec3& origin) const
+    {
+        // Return a random point of one of the objects in the list,
+        // chosen at random.
+        auto index = Random::uint(0, objects.size() - 1);
+        return objects[index]->random_point(origin);
+    }
+
+    float HittableList::pdf_value(const Ray& r)
+    {
+        // Sum the probability values for every object in the list and
+        // return it normalized.
+
+        auto sum = 0.f;
+        for (auto& obj: objects)
+        {
+            sum += obj->pdf_value(r);
+        }
+
+        return sum/objects.size();
+    }
+
     bool Sphere::hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const
     {
         // How do we detect if a ray hits a sphere ? Let's say the ray
@@ -116,6 +138,59 @@ namespace Ilya
         box = surrounding_box(box1, box2);
 
         return true;
+    }
+
+    Vec3 Sphere::random_point(const Vec3& origin) const
+    {
+        auto dir = c0 - origin;
+        auto d = length(dir);
+
+        // To get a random point on the surface of the sphere, we get
+        // two random numbers, which we use for the angles theta and phi...
+        auto r1 = Random::rfloat();
+        auto r2 = Random::rfloat();
+        auto phi = 2*pi*r1;
+
+        // ...and then transform to cartesian coordinates. We have that
+        // r2 = Integral{2pi*f(u)*sin(t)} (see `Random::cosine_dir()`),
+        // with f(u) = C a constant because we are sampling uniformly
+        // over the sphere, and with r2 = 1 at theta = theta_max, so in
+        // the end cos(t) = 1 + r2*(cos(t_max) - 1). But sin(t_max),
+        // geometrically, is the ratio between the radius of the sphere
+        // and the distance from the viewer to the center of the sphere,
+        // that is, sin(t_max) = r/d. Then cos(t_max) = sqrt(1 - sin^2),
+        // and transforming from spherical coordinates give us x, y and
+        // z.
+        auto cos_t_max = std::sqrt(1 - radius*radius/(d*d));
+        auto z = 1 + r2*(cos_t_max - 1);
+        auto x = std::cos(phi)*std::sqrt(1 - z*z);
+        auto y = std::sin(phi)*std::sqrt(1 - z*z);
+
+        ONB uvw {dir};
+        return uvw.local(x, y, z);
+    }
+
+    float Sphere::pdf_value(const Ray& r)
+    {
+        // Check that the ray hits the sphere; if not, the PDF value is 0.
+        HitRecord rec {};
+        if(!hit(r, 0.001, infinity, rec))
+            return 0.f;
+
+        // The probability of hitting the sphere of a certain radius at
+        // a certain distance is the inverse of the solid angle through
+        // which this sphere is seen (think "the probability of hitting
+        // one unit of the surface of the sphere seen by the viewer",
+        // which is precisely the solid angle). Then, knowing that the
+        // solid angle is given by the integral over theta and phi at a
+        // constant radius, W = Integral{sin(theta)} = 2*pi*(1 - cos(t_max))
+        // and calculating cos(t_max) as described in `random_point()`,
+        // we get the result.
+        auto d = length(center(rec.t) - r.orig);
+        auto cos_t_max = std::sqrt(1 - radius*radius/(d*d));
+        auto solid_angle = 2*pi*(1 - cos_t_max);
+
+        return 1/solid_angle;
     }
 
     /// Return whether the hittable `a` is to the left (true) or the

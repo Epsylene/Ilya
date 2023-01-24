@@ -29,6 +29,9 @@ namespace Ilya
                 return r * (max - min) + min;
             }
 
+            /// Random vector with component values between `min` and
+            /// `max` (in other words, random point in the [min, max]
+            /// cube).
             static Vec3 vector(float min = 0.f, float max = 1.f)
             {
                 return { rfloat(min, max),
@@ -36,6 +39,7 @@ namespace Ilya
                          rfloat(min, max)};
             }
 
+            /// Random vector that has unit length.
             static Vec3 in_unit_sphere()
             {
                 while (true)
@@ -98,7 +102,7 @@ namespace Ilya
                 // f(theta) (this comes from the supposition that our
                 // PDF is rotationaly symmetric around Z, which means
                 // that it depends only on theta): r2 =
-                // integral{2*pi*f(u)sin(u)d(u)}. Let's say that
+                // Integral{2*pi*f(u)sin(u)d(u)}. Let's say that
                 // f(theta) = cos(theta)/pi, which is the cosine
                 // distribution that Lambertian materials follow. Then
                 // r2 = 1 - cos^2(theta), and changing to cartesian
