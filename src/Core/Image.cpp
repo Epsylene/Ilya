@@ -6,7 +6,7 @@
 namespace Ilya
 {
     Image::Image(uint32_t width, uint32_t height, const fs::path& path):
-        width(width), height(height), path(path), img(path)
+        width(width), height(height), path(path), img(fmt::output_file(path.string()))
     {
         // Outputting an image file: we use a PPM file, which is a
         // simple format looking like
@@ -18,7 +18,7 @@ namespace Ilya
         //      [pixel10] ...
         //      ...
         //
-        img << fmt::format("P3\n{} {}\n255\n", width, height);
+        img.print("P3\n{} {}\n255\n", width, height);
     }
 
     Image::Image(const Image& img):
@@ -29,17 +29,16 @@ namespace Ilya
     {
         auto [r, g, b, a] = color;
 
-        // Check for NaNs (the one and only time when something isn't
-        // equal to itself).
-        if(r != r) r = 0.f;
-        if(g != g) g = 0.f;
-        if(b != b) b = 0.f;
+        // Check for NaNs
+        if(std::isnan(r)) r = 0.f;
+        if(std::isnan(g)) g = 0.f;
+        if(std::isnan(b)) b = 0.f;
 
         // Clamp colors to the [0, 256[ range.
         r = 256 * std::clamp(r, 0.f, 0.999f);
         g = 256 * std::clamp(g, 0.f, 0.999f);
         b = 256 * std::clamp(b, 0.f, 0.999f);
 
-        img << fmt::format("{} {} {}\n", (int)r, (int)g, (int)b);
+        img.print("{} {} {}\n", (int)r, (int)g, (int)b);
     }
 }

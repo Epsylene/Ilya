@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include "ilpch.hpp"
 #include "Utils/Color.hpp"
 
 namespace Ilya
@@ -21,6 +22,6 @@ namespace Ilya
 
         private:
 
-            std::ofstream img;
+            fmt::ostream img;
     };
 }
