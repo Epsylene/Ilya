@@ -11,7 +11,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin/${CMAKE_BUILD
 
 # Libs, include #
 
-add_library(Ilya SHARED src/Utils/Vector4.hpp src/Utils/Color.cpp src/Objects/Ray.hpp src/Utils/Vector3.cpp src/Objects/Hittable.cpp src/Objects/Hittable.hpp src/Core.hpp src/Objects/Camera.hpp src/Objects/Material.cpp src/Objects/Material.hpp src/Objects/BoundingBox.hpp src/Objects/BoundingBox.cpp src/Objects/Texture.hpp src/Utils/Perlin.hpp src/Objects/Instances.cpp src/Objects/Instances.hpp src/Core/Renderer.cpp src/Core/Renderer.hpp src/Core/Image.cpp src/Core/Image.hpp src/ilpch.hpp src/Utils/Random.cpp src/Utils/Random.hpp src/Utils/PDF.hpp)
+add_library(Ilya SHARED src/Utils/Vector4.hpp src/Utils/Color.cpp src/Objects/Ray.hpp src/Utils/Vector3.cpp src/Objects/Hittable.cpp src/Objects/Hittable.hpp src/Core.hpp src/Objects/Camera.hpp src/Objects/Material.cpp src/Objects/Material.hpp src/Objects/BoundingBox.hpp src/Objects/BoundingBox.cpp src/Objects/Texture.hpp src/Utils/Perlin.hpp src/Objects/Instances.cpp src/Objects/Instances.hpp src/Core/Renderer.cpp src/Core/Renderer.hpp src/Core/Image.cpp src/Core/Image.hpp src/ilpch.hpp src/Utils/Random.cpp src/Utils/Random.hpp src/Utils/PDF.hpp src/Utils/Matrix4.cpp src/Utils/Matrix4.hpp)
 
 add_library(stb_image STATIC lib/stb_image/stb_image.cpp lib/stb_image/stb_image.h)
 target_include_directories(stb_image PUBLIC lib/stb_image)

@@ -7,26 +7,21 @@ namespace Ilya
 {
     struct Vector4
     {
-        float x, y, z, w;
+        union
+        {
+            struct { float x, y, z, w; };
+            struct { std::array<float, 4> elemns {}; };
+        };
 
-        constexpr Vector4() = default;
+        constexpr Vector4():
+            x(0), y(0), z(0), w(0) {}
 
-        //////////////////////////////////////////
-        /// @brief Construct a Vector4 with all its
-        ///     coefficients set to `scalar`
-        constexpr explicit Vector4(float scalar): x(scalar), y(scalar),
-                                                  z(scalar), w(scalar)
-        {}
+        constexpr explicit Vector4(float scalar):
+            x(scalar), y(scalar), z(scalar), w(scalar) {}
 
-        /////////////////////////////////////////
-        /// @brief Construct a Vector4 from the
-        ///     provided scalar coefficients
-        constexpr Vector4(float x, float y, float z, float w): x(x), y(y),
-                                                               z(z), w(w)
-        {}
+        constexpr Vector4(float x, float y, float z, float w):
+            x(x), y(y), z(z), w(w) {}
 
-        ///////////////////////////
-        /// @brief Unary Vector4 sum
         constexpr Vector4& operator+=(const Vector4& vec)
         {
             x += vec.x;
@@ -37,8 +32,6 @@ namespace Ilya
             return *this;
         }
 
-        //////////////////////////////////
-        /// @brief Unary Vector4 difference
         constexpr Vector4& operator-=(const Vector4& vec)
         {
             x -= vec.x;
@@ -49,8 +42,6 @@ namespace Ilya
             return *this;
         }
 
-        //////////////////////////////////////
-        /// @brief Unary Vector4 scalar product
         constexpr Vector4& operator*=(float scalar)
         {
             x *= scalar;
@@ -61,8 +52,6 @@ namespace Ilya
             return *this;
         }
 
-        ///////////////////////////////////////
-        /// @brief Unary Vector4 scalar division
         constexpr Vector4& operator/=(float scalar)
         {
             x /= scalar;
@@ -73,11 +62,6 @@ namespace Ilya
             return *this;
         }
 
-        /////////////////////////////////////////////////////
-        /// @brief Unary Vector4 coefficient-wise product
-        ///
-        /// This is only provided for the sake of convenience,
-        /// in dot product functions and the like.
         constexpr Vector4& operator*=(const Vector4& vec)
         {
             x *= vec.x;
@@ -88,15 +72,11 @@ namespace Ilya
             return *this;
         }
 
-        //////////////////////////
-        /// @brief Opposite Vector4
-        constexpr Vector4 operator-()
+        constexpr Vector4 operator-() const
         {
             return {-x, -y, -z, -w};
         }
 
-        ///////////////////////////////////
-        /// @brief Vector4 equality operator
         bool operator==(const Vector4& rhs) const
         {
             return x == rhs.x &&
@@ -105,11 +85,19 @@ namespace Ilya
                    w == rhs.w;
         }
 
-        /////////////////////////////////////
-        /// @brief Vector4 difference operator
         bool operator!=(const Vector4& rhs) const
         {
             return !(rhs == *this);
+        }
+
+        constexpr float& operator[](size_t idx)
+        {
+            return elemns[idx];
+        }
+
+        constexpr const float& operator[](size_t idx) const
+        {
+            return elemns[idx];
         }
     };
 
@@ -119,9 +107,30 @@ namespace Ilya
         return vec1;
     }
 
+    constexpr Vector4 operator-(Vector4 vec1, const Vector4& vec2)
+    {
+        vec1 -= vec2;
+        return vec1;
+    }
+
     constexpr Vector4 operator*(Vector4 vec1, float scalar)
     {
         vec1 *= scalar;
         return vec1;
     }
 }
+
+template <>
+struct fmt::formatter<Ilya::Vector4>
+{
+constexpr auto parse(format_parse_context& ctx)
+{
+    return ctx.end();
+}
+
+template <typename Context>
+auto format(const Ilya::Vector4& vec, Context& ctx)
+{
+    return format_to(ctx.out(), "({}, {}, {}, {})", vec.x, vec.y, vec.z, vec.w);
+}
+};
