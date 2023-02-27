@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "Utils/Vector3.hpp"
+#include "Utils/Math.hpp"
 #include "Ray.hpp"
 #include "Material.hpp"
 #include "BoundingBox.hpp"

@@ -3,7 +3,7 @@
 
 #include "Core.hpp"
 
-#include "Utils/Vector3.hpp"
+#include "Utils/Math.hpp"
 #include "Utils/Random.hpp"
 #include "Objects/Ray.hpp"
 
@@ -31,8 +31,8 @@ namespace Ilya
                 auto viewport_width = viewport_height * aspect;
 
                 // Camera basis vectors
-                w = unit(from - at);
-                u = unit(cross(up, w));
+                w = normalize(from - at);
+                u = normalize(cross(up, w));
                 v = cross(w, u);
 
                 orig = from; // the origin point

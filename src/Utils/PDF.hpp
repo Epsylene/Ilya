@@ -48,7 +48,7 @@ namespace Ilya
                 // other case, return the cosine (given by Lambert's
                 // cosine law) divided by pi, which is the value of the
                 // probability for the cosine distribution over [0, pi].
-                auto cos = dot(unit(dir), uvw.w);
+                auto cos = dot(normalize(dir), uvw.w);
                 return (cos <= 0) ? 0 : cos/pi;
             }
 

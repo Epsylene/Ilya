@@ -2,6 +2,7 @@
 #pragma once
 
 #include "ilpch.hpp"
+#include "Core.hpp"
 #include "Utils/Color.hpp"
 
 namespace Ilya

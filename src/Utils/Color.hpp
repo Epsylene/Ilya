@@ -1,8 +1,7 @@
 
 #pragma once
 
-#include "Vector3.hpp"
-#include "Vector4.hpp"
+#include "Math.hpp"
 
 namespace Ilya
 {
@@ -34,19 +33,19 @@ namespace Ilya
 
             /////////////////////////////////
             /// @brief Construct an RGB color
-            Color(const Vector3& color);
+            Color(const Vec3& color);
 
             /////////////////////////////////
             /// @brief Construct an RGBA color
-            Color(const Vector4& color);
+            Color(const Vec4& color);
 
             Color& operator+=(const Color& color);
             Color& operator-=(const Color& color);
             Color& operator*=(const Color& color);
             Color& operator*=(float factor);
 
-            operator Vector3() const;
-            operator Vector4() const;
+            operator Vec3() const;
+            operator Vec4() const;
     };
 
     Color operator+(const Color& c1, const Color& c2);

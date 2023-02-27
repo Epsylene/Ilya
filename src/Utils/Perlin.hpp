@@ -2,7 +2,7 @@
 #pragma once
 
 #include "Random.hpp"
-#include "Vector3.hpp"
+#include "Math.hpp"
 
 namespace Ilya
 {
@@ -14,7 +14,7 @@ namespace Ilya
             {
                 for (int i = 0; i < pt_count; ++i)
                 {
-                    ranvec.emplace_back(unit(Random::vector(-1.f, 1.f)));
+                    ranvec.emplace_back(normalize(Random::vector(-1.f, 1.f)));
                 }
 
                 gen_perm(permX);

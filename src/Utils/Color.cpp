@@ -20,12 +20,12 @@ namespace Ilya
                                                       b(b), a(a)
     {}
 
-    Color::Color(const Vector3& color): r(color.x), g(color.y),
+    Color::Color(const Vec3& color): r(color.x), g(color.y),
                                         b(color.z), a(1.f)
     {}
 
-    Color::Color(const Vector4& color): r(color.x), g(color.y),
-                                        b(color.z), a(color.w)
+    Color::Color(const Vec4& color): r(color.x), g(color.y),
+        b(color.z), a(color.w)
     {}
 
     Color& Color::operator+=(const Color& color)
@@ -68,14 +68,14 @@ namespace Ilya
         return *this;
     }
 
-    Color::operator Vector3() const
+    Color::operator Vec3() const
     {
-        return Vector3(r, g, b);
+        return Vec3(r, g, b);
     }
 
-    Color::operator Vector4() const
+    Color::operator Vec4() const
     {
-        return Vector4(r, g, b, a);
+        return Vec4(r, g, b, a);
     }
 
     Color operator+(const Color& c1, const Color& c2)

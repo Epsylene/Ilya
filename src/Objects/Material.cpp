@@ -61,7 +61,7 @@ namespace Ilya
         // This cosine is given by the dot product of the material's
         // surface normal and the scattering ray direction (because N·L
         // = |N||L|cos(theta) = cos(theta), N and L being unitary).
-        auto cos = dot(rec.normal, unit(out.dir));
+        auto cos = dot(rec.normal, normalize(out.dir));
 
         // If the cosine is negative (that is, if the angle is greater
         // than pi/2, which means that the scattering ray is going into
@@ -79,7 +79,7 @@ namespace Ilya
         // metallic material: the more fuziness, the more rays there is
         // that do not scatter exactly like expected, and the more the
         // object has a matte look to it.
-        auto reflected = reflect(unit(in.dir), rec.normal);
+        auto reflected = reflect(normalize(in.dir), rec.normal);
         scatter.ray = {rec.p, reflected + fuziness * Random::in_unit_sphere(), in.cast_time};
 
         scatter.albedo = albedo;
@@ -109,7 +109,7 @@ namespace Ilya
         // surface normal is given by the dot product of its (reoriented)
         // direction and the normal, clamped under 1. The sine (s) is then
         // simply sqrt(1 - c^2).
-        auto udir = unit(in.dir);
+        auto udir = normalize(in.dir);
         float c = std::min(dot(-udir, rec.normal), 1.f);
         float s = std::sqrt(1.f - c*c);
 

@@ -2,7 +2,7 @@
 #pragma once
 
 #include "Core.hpp"
-#include "Vector3.hpp"
+#include "Math.hpp"
 
 namespace Ilya
 {
@@ -67,7 +67,7 @@ namespace Ilya
                     return -vec;
             }
 
-            static Vector3 in_unit_disk()
+            static Vec3 in_unit_disk()
             {
                 // Create random vectors in the [-1, 1] square until the
                 // length is inferior to 1 (thus in the unit disk).
@@ -84,7 +84,7 @@ namespace Ilya
             /// Get a random unit vector.
             static Vec3 unit_vector()
             {
-                return unit(in_unit_sphere());
+                return normalize(in_unit_sphere());
             }
 
             static Vec3 cosine_dir()
