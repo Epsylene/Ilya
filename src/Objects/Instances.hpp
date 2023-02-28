@@ -19,7 +19,7 @@ namespace Ilya
                 obj(obj), offset(offset) {}
 
             bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
-            bool bounding_box(BoundingBox& box, float t0, float t1) const override;
+            bool bounding_box(Bounds& box, float t0, float t1) const override;
 
         private:
 
@@ -38,7 +38,7 @@ namespace Ilya
 
             bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
 
-            bool bounding_box(BoundingBox& box, float t0, float t1) const override
+            bool bounding_box(Bounds& box, float t0, float t1) const override
             {
                 box = this->box;
 
@@ -48,7 +48,7 @@ namespace Ilya
         private:
 
             Ref<Hittable> obj;
-            BoundingBox box {};
+            Bounds box {};
             bool hadbox;
             float sin, cos;
     };
@@ -71,7 +71,7 @@ namespace Ilya
                 return true;
             }
 
-            bool bounding_box(BoundingBox& box, float t0, float t1) const override
+            bool bounding_box(Bounds& box, float t0, float t1) const override
             {
                 return obj->bounding_box(box, t0, t1);
             }

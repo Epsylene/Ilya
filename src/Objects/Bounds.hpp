@@ -7,12 +7,12 @@ namespace Ilya
 {
     /// Bounding boxes for hittables and sets of hittables, to better
     /// determine ray paths in the scene (see BVHnode).
-    class BoundingBox
+    class Bounds
     {
         public:
 
-            BoundingBox() = default;
-            BoundingBox(const Vec3& a, const Vec3& b):
+            Bounds() = default;
+            Bounds(const Vec3& a, const Vec3& b):
                     min(a), max(b) {}
 
             /// Is the bounding box hit by the ray `r` between `tmin`
@@ -24,5 +24,5 @@ namespace Ilya
             Vec3 min, max;
     };
 
-    BoundingBox surrounding_box(const BoundingBox& b1, const BoundingBox& b2);
+    Bounds surrounding_box(const Bounds& b1, const Bounds& b2);
 }

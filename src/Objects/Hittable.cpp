@@ -35,12 +35,12 @@ namespace Ilya
         return hit;
     }
 
-    bool HittableList::bounding_box(BoundingBox& box, float t0, float t1) const
+    bool HittableList::bounding_box(Bounds& box, float t0, float t1) const
     {
         if(objects.empty())
             return false;
 
-        BoundingBox objbox {};
+        Bounds objbox {};
         bool first_box = true;
 
         for (auto& object: objects)
@@ -131,10 +131,10 @@ namespace Ilya
         return c0 + (t - t0)/(t1 - t0) * (c1 - c0);
     }
 
-    bool Sphere::bounding_box(BoundingBox& box, float t0, float t1) const
+    bool Sphere::bounding_box(Bounds& box, float t0, float t1) const
     {
-        BoundingBox box1 {center(t0) - Vec3{radius}, center(t0) + Vec3{radius}};
-        BoundingBox box2 {center(t1) - Vec3{radius}, center(t1) + Vec3{radius}};
+        Bounds box1 {center(t0) - Vec3{radius}, center(t0) + Vec3{radius}};
+        Bounds box2 {center(t1) - Vec3{radius}, center(t1) + Vec3{radius}};
         box = surrounding_box(box1, box2);
 
         return true;
@@ -199,7 +199,7 @@ namespace Ilya
     inline bool box_compare(const Ref<Hittable>& a, const Ref<Hittable>& b)
     {
         // Compare two boxes.
-        BoundingBox box_a {}, box_b {};
+        Bounds box_a {}, box_b {};
 
         // First check if the hittables `a` and `b` actually have bounding
         // boxes (that is, if one or both of them are not empty).
@@ -271,7 +271,7 @@ namespace Ilya
 
         // Once the left and right nodes are found, check that they are
         // not empty...
-        BoundingBox box_left {}, box_right {};
+        Bounds box_left {}, box_right {};
         if(!left->bounding_box(box_left, t0, t1)
            || !right->bounding_box(box_right, t0, t1))
         {
@@ -301,11 +301,20 @@ namespace Ilya
         return hit_left || hit_right;
     }
 
-    bool BVHnode::bounding_box(BoundingBox& box, float t0, float t1) const
+    bool BVHnode::bounding_box(Bounds& box, float t0, float t1) const
     {
         box = this->box;
         return true;
     }
+
+    template<Axis ax0, Axis ax1>
+    concept XY = (ax0 == Axis::X && ax1 == Axis::Y);
+
+    template<Axis ax0, Axis ax1>
+    concept XZ = (ax0 == Axis::X && ax1 == Axis::Z);
+
+    template<Axis ax0, Axis ax1>
+    concept YZ = (ax0 == Axis::Y && ax1 == Axis::Z);
 
     template<Axis ax0, Axis ax1> requires (ax0 < ax1)
     bool Rectangle<ax0, ax1>::hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const
@@ -368,7 +377,7 @@ namespace Ilya
 
     template<Axis ax0, Axis ax1>
     requires (ax0 < ax1)bool
-    Rectangle<ax0, ax1>::bounding_box(BoundingBox& box, float t0,
+    Rectangle<ax0, ax1>::bounding_box(Bounds& box, float t0,
                                       float t1) const
     {
         // The bounding box cannot have zero width, so we leave a little

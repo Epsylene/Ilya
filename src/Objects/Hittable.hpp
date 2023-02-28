@@ -2,9 +2,10 @@
 #pragma once
 
 #include "Utils/Math.hpp"
+#include "Utils/Transform.hpp"
 #include "Ray.hpp"
 #include "Material.hpp"
-#include "BoundingBox.hpp"
+#include "Bounds.hpp"
 
 namespace Ilya
 {
@@ -44,7 +45,7 @@ namespace Ilya
 
             /// Creates a bounding box `box` around the object between
             /// times t0 and t1.
-            virtual bool bounding_box(BoundingBox& box, float t0, float t1) const = 0;
+            virtual bool bounding_box(Bounds& box, float t0, float t1) const = 0;
 
             /// Returns a random vector between `origin` and a point on
             /// the surface of the object.
@@ -80,7 +81,7 @@ namespace Ilya
             }
 
             bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
-            bool bounding_box(BoundingBox& box, float t0, float t1) const override;
+            bool bounding_box(Bounds& box, float t0, float t1) const override;
 
             Vec3 random_point(const Vec3& origin) const override;
 
@@ -105,12 +106,12 @@ namespace Ilya
                     size_t start, size_t end, float t0, float t1);
 
             bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
-            bool bounding_box(BoundingBox& box, float t0, float t1) const override;
+            bool bounding_box(Bounds& box, float t0, float t1) const override;
 
         private:
 
             Ref<Hittable> left, right;
-            BoundingBox box;
+            Bounds box;
     };
 
     class Sphere: public Hittable
@@ -124,7 +125,7 @@ namespace Ilya
                     c0(c0), c1(c1), t0(t0), t1(t1), radius(radius), material(mat) {}
 
             bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
-            bool bounding_box(BoundingBox& box, float t0, float t1) const override;
+            bool bounding_box(Bounds& box, float t0, float t1) const override;
 
             Vec3 random_point(const Vec3& origin) const override;
 
@@ -157,20 +158,6 @@ namespace Ilya
             }
     };
 
-    enum class Axis
-    {
-        X = 0, Y = 1, Z = 2
-    };
-
-    template<Axis ax0, Axis ax1>
-    concept XY = (ax0 == Axis::X && ax1 == Axis::Y);
-
-    template<Axis ax0, Axis ax1>
-    concept XZ = (ax0 == Axis::X && ax1 == Axis::Z);
-
-    template<Axis ax0, Axis ax1>
-    concept YZ = (ax0 == Axis::Y && ax1 == Axis::Z);
-
     template<Axis ax0, Axis ax1> requires (ax0 < ax1)
     class Rectangle: public Hittable
     {
@@ -181,7 +168,7 @@ namespace Ilya
                       r0(r0), s0(s0), r1(r1), s1(s1), k(k), material(mat) {}
 
             bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
-            bool bounding_box(BoundingBox& box, float t0, float t1) const override;
+            bool bounding_box(Bounds& box, float t0, float t1) const override;
             Vec3 random_point(const Vec3& origin) const override;
             float pdf_value(const Ray& r) override;
 
@@ -199,7 +186,7 @@ namespace Ilya
 
             bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
 
-            bool bounding_box(BoundingBox& box, float t0, float t1) const override
+            bool bounding_box(Bounds& box, float t0, float t1) const override
             {
                 box = {p0, p1};
 
@@ -225,7 +212,7 @@ namespace Ilya
 
             bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
 
-            bool bounding_box(BoundingBox& box, float t0, float t1) const override
+            bool bounding_box(Bounds& box, float t0, float t1) const override
             {
                 return boundary->bounding_box(box, t0, t1);
             }

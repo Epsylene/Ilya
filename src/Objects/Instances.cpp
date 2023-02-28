@@ -31,7 +31,7 @@ namespace Ilya
         return true;
     }
 
-    bool Translate::bounding_box(BoundingBox& box, float t0, float t1) const
+    bool Translate::bounding_box(Bounds& box, float t0, float t1) const
     {
         if(!obj->bounding_box(box, t0, t1))
             return false;

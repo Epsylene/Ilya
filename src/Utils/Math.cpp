@@ -13,6 +13,17 @@ namespace Ilya
         return glm::sqrt(p);
     }
 
+    Point3 operator*(const Point3& p, float scalar)
+    {
+        return {p.x*scalar, p.y*scalar, p.z*scalar};
+    }
+
+    Point3 operator/(const Point3& p, float scalar)
+    {
+        auto inv = 1 / scalar;
+        return {p.x*inv, p.y*inv, p.z*inv};
+    }
+
     ONB::ONB(const Vec3& w)
     {
         // To build an orthogonal basis (u, v, w) from a given vector,

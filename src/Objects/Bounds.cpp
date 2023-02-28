@@ -1,9 +1,9 @@
 
-#include "BoundingBox.hpp"
+#include "Bounds.hpp"
 
 namespace Ilya
 {
-    bool BoundingBox::hit(const Ray& r, float tmin, float tmax) const
+    bool Bounds::hit(const Ray& r, float tmin, float tmax) const
     {
         // One method for calculating ray-object intersections
         // more efficiently is the axis-aligned bounding boxes
@@ -50,7 +50,7 @@ namespace Ilya
         return true;
     }
 
-    BoundingBox surrounding_box(const BoundingBox& b1, const BoundingBox& b2)
+    Bounds surrounding_box(const Bounds& b1, const Bounds& b2)
     {
         Vec3 min { std::min(b1.min.x, b2.min.x),
                    std::min(b1.min.y, b2.min.y),
