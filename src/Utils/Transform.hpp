@@ -10,6 +10,11 @@ namespace Ilya
         X = 0, Y = 1, Z = 2
     };
 
+    /// @brief Homogeneous transformation class
+    ///
+    /// Transformation as described by a 4x4 matrix
+    /// in homogeneous coordinates. Contains inverse
+    /// as well to speed up calculations.
     class Transform
     {
         public:

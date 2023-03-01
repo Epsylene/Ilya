@@ -50,6 +50,9 @@ namespace Ilya
             Normal() = default;
             Normal(float x, float y, float z):
                     x(x), y(y), z(z) {}
+
+            explicit Normal(const Vec3& v):
+                x(v.x), y(v.y), z(v.z) {}
     };
 
     /// Orthonormal base of 3 vectors.

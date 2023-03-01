@@ -62,21 +62,94 @@ namespace Ilya
         return {m, inv};
     }
 
-    Vec3 Transform::operator()(const Vec3& v) const
-    {
-        auto vector = Vec4{v.x, v.y, v.z, 0.f};
-
-        return transform*vector;
-    }
-
     Point3 Transform::operator()(const Point3& p) const
     {
+        // Homogeneous coordinates (also called
+        // projective coordinates) are coordinates
+        // used in projective geometry, like
+        // Cartesian coordinates are in Euclidean
+        // geometry. The projective plane (where
+        // points of the projective geometry live)
+        // can be thought of as the Euclidean plane
+        // with additional points added, the "points
+        // at infinity", which can be seen as the
+        // limit point for each given direction in
+        // space; parallel lines in Euclidean space
+        // are said to intersect at the point at
+        // infinity corresponding to their direction.
+        //
+        // Points on the projective plane represent
+        // coordinates on the Euclidean plane. These
+        // coordinates do not change upon scaling of
+        // the projective space points, because doing
+        // so is equivalent to moving them along the
+        // lines that connect them to the origin (the
+        // projective line), which doesn't change the
+        // projection on the Euclidean plane. Thus,
+        // points (x, y, z) in Euclidean space become
+        // (x*w, y*w, z*w, w) in projective space;
+        // the factor w is commonly set to 1, so to
+        // have the homogeneous system of coordinates
+        // (x, y, z, 1). This is what we do here: the
+        // Euclidean point p is put in projective
+        // space and transformed inside that space.
         auto point = Vec4{p.x, p.y, p.z, 1.f};
         auto newp = transform * point;
 
+        // To get the Euclidean coordinates of the
+        // new point, we have to get rid of the w
+        // factor in the expression given above, so
+        // we divide by the fourth coordinate:
         if(newp.w == 1)
             return Point3{newp};
         else
             return Point3{newp}/newp.w;
+    }
+
+    Vec3 Transform::operator()(const Vec3& v) const
+    {
+        // Vectors, when seen as directions,
+        // correspond to lines in projective space.
+        // All parallel lines (which are headed
+        // towards the same direction) share the same
+        // point at infinity; thus, the coordinates
+        // of this point are enough to represent a
+        // direction in projective space. Points
+        // at infinity can be seen as normal points
+        // where the scaling factor w has been set
+        // to zero (in other words, points that have
+        // been scaled along the line all the way
+        // down to the origin). Then a vector v in
+        // Euclidean coordinates becomes (v, 0) in
+        // projective space:
+        auto vector = Vec4{v.x, v.y, v.z, 0.f};
+
+        return Vec3{transform * vector};
+    }
+
+    Normal Transform::operator()(const Normal& n) const
+    {
+        // Normals do not transform in the same way
+        // as vectors do (picture a normal on a
+        // circle that is being scaled along some
+        // axis: the normal changes in a different
+        // way than the rest of the shape). We know
+        // by construction that for any normal vector
+        // n and tangent vector t at the same point
+        // dot(n, t) = 0, which we can write as n^T.t
+        // = 0 (where n^T is the transpose of n).
+        // When we transform the point by some matrix
+        // M, the new tangent vector at this point is
+        // M.t ; then if the new normal is S.n (for
+        // some matrix S to be determined), we have
+        // that (Sn)^T.(Mt) = 0 <=> n^T.S^T.Mt = 0.
+        // Since n^T.t = 0, S^T.M = Id, therefore S^T
+        // = M^-1 and so S = (M^-1)^T: normals must be
+        // transformed by the inverse transpose of the
+        // transformation matrix.
+        auto normal = Vec4{n.x, n.y, n.z, 0.f};
+        auto newn = transpose(inverse(transform)) * normal;
+
+        return Normal{newn};
     }
 }
