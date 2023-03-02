@@ -1,8 +1,8 @@
 
 #include "Hittable.hpp"
 
-#include "Utils/Math.hpp"
-#include "Utils/functions.hpp"
+#include "Utils/Math/geometry.hpp"
+#include "Utils/Math/functions.hpp"
 
 namespace Ilya
 {

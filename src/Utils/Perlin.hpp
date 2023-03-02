@@ -2,7 +2,7 @@
 #pragma once
 
 #include "Random.hpp"
-#include "Math.hpp"
+#include "Utils/Math/geometry.hpp"
 
 namespace Ilya
 {

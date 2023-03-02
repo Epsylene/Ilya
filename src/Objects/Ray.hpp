@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "Utils/Math.hpp"
+#include "Utils/Math/geometry.hpp"
 #include "Utils/Color.hpp"
 
 namespace Ilya

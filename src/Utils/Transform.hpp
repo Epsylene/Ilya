@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "Math.hpp"
+#include "Utils/Math/geometry.hpp"
 
 namespace Ilya
 {
@@ -30,12 +30,11 @@ namespace Ilya
             Point3 operator()(const Point3& p) const;
             Normal operator()(const Normal& n) const;
 
-
-        private:
-
             Mat4 transform;
             Mat4 inv;
     };
+
+    Transform operator*(const Transform& t1, const Transform& t2);
 
     Transform translate(const Vec3& delta);
     Transform scale(const Vec3& factor);

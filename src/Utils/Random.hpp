@@ -2,8 +2,8 @@
 #pragma once
 
 #include "Core.hpp"
-#include "Math.hpp"
-#include "functions.hpp"
+#include "Utils/Math/geometry.hpp"
+#include "Utils/Math/functions.hpp"
 
 namespace Ilya
 {

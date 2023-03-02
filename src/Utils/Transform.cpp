@@ -3,6 +3,12 @@
 
 namespace Ilya
 {
+    Transform operator*(const Transform& t1, const Transform& t2)
+    {
+        return {t1.transform * t2.transform,
+                t2.inv * t1.inv};
+    }
+
     Transform translate(const Vec3& delta)
     {
         auto m = glm::translate(delta);

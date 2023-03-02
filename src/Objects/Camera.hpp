@@ -3,7 +3,7 @@
 
 #include "Core.hpp"
 
-#include "Utils/Math.hpp"
+#include "Utils/Math/geometry.hpp"
 #include "Utils/Random.hpp"
 #include "Objects/Ray.hpp"
 
