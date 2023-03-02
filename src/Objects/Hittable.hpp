@@ -16,7 +16,8 @@ namespace Ilya
     /// (frontFace), and the surface's material (material).
     struct HitRecord
     {
-        Vec3 p, normal;
+        Point3 p;
+        Vec3 normal;
         float t;
         float u, v;
         bool frontFace;
@@ -49,7 +50,7 @@ namespace Ilya
 
             /// Returns a random vector between `origin` and a point on
             /// the surface of the object.
-            virtual Vec3 random_point(const Vec3& origin) const
+            virtual Point3 random_point(const Point3& origin) const
             {
                 return {};
             }
@@ -83,7 +84,7 @@ namespace Ilya
             bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
             bool bounding_box(Bounds& box, float t0, float t1) const override;
 
-            Vec3 random_point(const Vec3& origin) const override;
+            Point3 random_point(const Point3& origin) const override;
 
             float pdf_value(const Ray& r) override;
 
@@ -127,16 +128,16 @@ namespace Ilya
             bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
             bool bounding_box(Bounds& box, float t0, float t1) const override;
 
-            Vec3 random_point(const Vec3& origin) const override;
+            Point3 random_point(const Point3& origin) const override;
 
             float pdf_value(const Ray& r) override;
 
-            Vec3 center(float t) const;
+            Point3 center(float t) const;
 
         public:
 
             float t0, t1;
-            Vec3 c0, c1;
+            Point3 c0, c1;
             float radius;
             Ref<Material> material;
 
@@ -169,7 +170,7 @@ namespace Ilya
 
             bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
             bool bounding_box(Bounds& box, float t0, float t1) const override;
-            Vec3 random_point(const Vec3& origin) const override;
+            Point3 random_point(const Point3& origin) const override;
             float pdf_value(const Ray& r) override;
 
         public:
@@ -195,7 +196,7 @@ namespace Ilya
 
         public:
 
-            Vec3 p0, p1;
+            Point3 p0, p1;
             HittableList sides;
     };
 

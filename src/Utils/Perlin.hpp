@@ -22,7 +22,7 @@ namespace Ilya
                 gen_perm(permZ);
             }
 
-            float noise(const Vec3& p) const
+            float noise(const Point3& p) const
             {
                 // Perlin noise is a kind of gradient noise, where a
                 // lattice of random gradients are used to interpolate
@@ -67,7 +67,7 @@ namespace Ilya
                 return perlin_interp(weight, u, v, w);
             }
 
-            float turbulence(Vec3 p, int depth = 7) const
+            float turbulence(Point3 p, int depth = 7) const
             {
                 auto sum = 0.f;
                 auto amplitude = 1.f;
@@ -84,7 +84,7 @@ namespace Ilya
                 {
                     sum += amplitude * noise(p);
                     amplitude *= 0.5f;
-                    p *= 2;
+                    p = p*2;
                 }
 
                 return std::abs(sum);

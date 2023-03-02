@@ -153,7 +153,7 @@ namespace Ilya
         return true;
     }
 
-    Color DiffuseLight::emitted(float u, float v, const Vec3& p,
+    Color DiffuseLight::emitted(float u, float v, const Point3& p,
                                 const HitRecord& rec) const
     {
         // We only want to emit light coming from the front face of the

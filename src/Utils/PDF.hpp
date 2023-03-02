@@ -67,7 +67,7 @@ namespace Ilya
     {
         public:
 
-            HittablePDF(const Ref<Hittable>& obj, const Vec3& origin):
+            HittablePDF(const Ref<Hittable>& obj, const Point3& origin):
                     obj(obj), origin(origin) {}
 
             Vec3 random_vector() const override
@@ -75,7 +75,8 @@ namespace Ilya
                 // A random vector directed at a Hittable is a vector
                 // directed at a random point on the surface of the
                 // Hittable.
-                return obj->random_point(origin);
+                auto p = obj->random_point(origin);
+                return Vec3{p.x, p.y, p.z};
             }
 
             float val(const Vec3& dir) const override
@@ -88,7 +89,7 @@ namespace Ilya
         private:
 
             Ref<Hittable> obj;
-            Vec3 origin;
+            Point3 origin;
     };
 
     /// Utility class for mixing different PDFs in order to control the

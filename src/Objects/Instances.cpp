@@ -53,7 +53,7 @@ namespace Ilya
         sin = std::sin(theta);
         cos = std::cos(theta);
 
-        Vec3 min {infinity}, max {-infinity};
+        Point3 min {infinity}, max {-infinity};
         for (int i = 0; i < 2; ++i)
         {
             for (int j = 0; j < 2; ++j)

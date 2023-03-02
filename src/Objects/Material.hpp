@@ -24,7 +24,7 @@ namespace Ilya
         public:
 
             /// Color emitted by the material.
-            virtual Color emitted(float u, float v, const Vec3& p,
+            virtual Color emitted(float u, float v, const Point3& p,
                                   const HitRecord& rec) const
             {
                 return {};
@@ -156,7 +156,7 @@ namespace Ilya
                 return false;
             }
 
-            Color emitted(float u, float v, const Vec3& p,
+            Color emitted(float u, float v, const Point3& p,
                           const HitRecord& rec) const override;
 
         public:

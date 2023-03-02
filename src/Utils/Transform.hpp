@@ -30,6 +30,7 @@ namespace Ilya
             Point3 operator()(const Point3& p) const;
             Normal operator()(const Normal& n) const;
 
+
         private:
 
             Mat4 transform;

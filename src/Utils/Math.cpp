@@ -3,14 +3,19 @@
 
 namespace Ilya
 {
-    float square(const Vec3& p)
+    Point3 operator+(const Point3& p, const Vec3& v)
     {
-        return glm::dot(p, p);
+        return {p.x + v.x, p.y + v.y, p.z + v.z};
     }
 
-    Vec3 sqrt(const Vec3& p)
+    Point3 operator-(const Point3& p, const Vec3& v)
     {
-        return glm::sqrt(p);
+        return {p.x - v.x, p.y - v.y, p.z - v.z};
+    }
+
+    Vec3 operator-(const Point3& p1, const Point3& p2)
+    {
+        return {p1.x - p2.x, p1.y - p2.y, p1.z - p2.z};
     }
 
     Point3 operator*(const Point3& p, float scalar)
@@ -22,6 +27,25 @@ namespace Ilya
     {
         auto inv = 1 / scalar;
         return {p.x*inv, p.y*inv, p.z*inv};
+    }
+
+    float& Point3::operator[](std::size_t idx)
+    {
+        return coords[idx];
+    }
+
+    float Point3::operator[](std::size_t idx) const
+    {
+        return coords[idx];
+    }
+
+    Point3& Point3::operator+=(const Vec3& v)
+    {
+        x += v.x;
+        y += v.y;
+        z += v.z;
+
+        return *this;
     }
 
     ONB::ONB(const Vec3& w)

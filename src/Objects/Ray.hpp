@@ -11,17 +11,19 @@ namespace Ilya
         public:
 
             Ray() = default;
-            Ray(const Vec3& orig, const Vec3& dir, float time = 0.f):
+            Ray(const Point3& orig, const Vec3& dir, float time = 0.f):
                     orig(orig), dir(dir), cast_time(time) {}
+            Ray(const Ray& r) = default;
 
-            Vec3 at(float t) const
+            Point3 operator()(float t) const
             {
                 return orig + dir * t;
             }
 
         public:
 
-            Vec3 orig, dir;
+            Point3 orig;
+            Vec3 dir;
             float cast_time;
     };
 }

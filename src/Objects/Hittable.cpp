@@ -1,6 +1,9 @@
 
 #include "Hittable.hpp"
 
+#include "Utils/Math.hpp"
+#include "Utils/functions.hpp"
+
 namespace Ilya
 {
 
@@ -55,7 +58,7 @@ namespace Ilya
         return true;
     }
 
-    Vec3 HittableList::random_point(const Vec3& origin) const
+    Point3 HittableList::random_point(const Point3& origin) const
     {
         // Return a random point of one of the objects in the list,
         // chosen at random.
@@ -114,7 +117,7 @@ namespace Ilya
         // Once we got the solution, we save it in the hit record,
         // which will allow us to use that data later
         rec.t = root;
-        rec.p = r.at(rec.t);
+        rec.p = r(rec.t);
         rec.normal = (rec.p - center(r.cast_time))/radius;
         rec.material = material;
         auto out_normal = (rec.p - center(r.cast_time))/radius;
@@ -124,7 +127,7 @@ namespace Ilya
         return true;
     }
 
-    Vec3 Sphere::center(float t) const
+    Point3 Sphere::center(float t) const
     {
         // Center of a sphere that moves at constant speed between points
         // C0 and C1 in the time t1 - t0, at the time t
@@ -140,7 +143,7 @@ namespace Ilya
         return true;
     }
 
-    Vec3 Sphere::random_point(const Vec3& origin) const
+    Point3 Sphere::random_point(const Point3& origin) const
     {
         auto dir = c0 - origin;
         auto d = length(dir);
@@ -167,7 +170,7 @@ namespace Ilya
         auto y = std::sin(phi)*std::sqrt(1 - z*z);
 
         ONB uvw {dir};
-        return uvw.local(x, y, z);
+        return Point3{uvw.local(x, y, z)};
     }
 
     float Sphere::pdf_value(const Ray& r)
@@ -339,7 +342,7 @@ namespace Ilya
         //...we can get the point where the ray hit the rectangle, check
         // that it is not out of its physical bounds, and calculate its
         // UV coordinates as well as the surface normal.
-        auto [x, y, z] = r.at(t);
+        auto [x, y, z] = r(t);
         if constexpr(XY<ax0, ax1>)
         {
             if(x < r0 || x > r1 || y < s0 || y > s1)
@@ -394,9 +397,9 @@ namespace Ilya
 
     template<Axis ax0, Axis ax1>
     requires (ax0 < ax1)
-    Vec3 Rectangle<ax0, ax1>::random_point(const Vec3& origin) const
+    Point3 Rectangle<ax0, ax1>::random_point(const Point3& origin) const
     {
-        Vec3 random_point {};
+        Point3 random_point {};
 
         if constexpr(XY<ax0, ax1>)
             random_point = {Random::rfloat(r0, r1), Random::rfloat(s0, s1), k};
@@ -405,7 +408,7 @@ namespace Ilya
         else if constexpr(YZ<ax0, ax1>)
             random_point = {k, Random::rfloat(r0, r1), Random::rfloat(s0, s1) };
 
-        return random_point - origin;
+        return Point3{random_point - origin};
     }
 
     template<Axis ax0, Axis ax1>
@@ -507,7 +510,7 @@ namespace Ilya
             return false;
 
         rec.t = rec1.t + hit_distance/ray_length;
-        rec.p = r.at(rec.t);
+        rec.p = r(rec.t);
         rec.normal = {1.f, 0.f, 0.f};
         rec.frontFace = true;
         rec.material = phase_func;

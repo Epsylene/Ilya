@@ -12,7 +12,7 @@ namespace Ilya
         public:
 
             Bounds() = default;
-            Bounds(const Vec3& a, const Vec3& b):
+            Bounds(const Point3& a, const Point3& b):
                     min(a), max(b) {}
 
             /// Is the bounding box hit by the ray `r` between `tmin`
@@ -21,7 +21,7 @@ namespace Ilya
 
         public:
 
-            Vec3 min, max;
+            Point3 min, max;
     };
 
     Bounds surrounding_box(const Bounds& b1, const Bounds& b2);

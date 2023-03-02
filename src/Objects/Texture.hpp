@@ -12,7 +12,7 @@ namespace Ilya
     {
         public:
 
-            virtual Color val(float u, float v, const Vec3& p) const = 0;
+            virtual Color val(float u, float v, const Point3& p) const = 0;
     };
 
     /// Solid (uniform) color texture
@@ -24,7 +24,7 @@ namespace Ilya
             SolidColor(float r, float g, float b):
                     color(r, g, b) {}
 
-            Color val(float u, float v, const Vec3& p) const override
+            Color val(float u, float v, const Point3& p) const override
             {
                 return color;
             }
@@ -45,7 +45,7 @@ namespace Ilya
             CheckerTexture(Color c1, Color c2): even(std::make_shared<SolidColor>(c1)),
                                                 odd(std::make_shared<SolidColor>(c2)) {}
 
-            Color val(float u, float v, const Vec3& p) const override
+            Color val(float u, float v, const Point3& p) const override
             {
                 auto sines = std::sin(10*p.x)*std::sin(10*p.y)*std::sin(10*p.z);
 
@@ -67,7 +67,7 @@ namespace Ilya
 
             explicit NoiseTexture(float scale): scale(scale) {}
 
-            Color val(float u, float v, const Vec3& p) const override
+            Color val(float u, float v, const Point3& p) const override
             {
                 return 0.5f * Color{1, 1, 1} * (1 + std::sin(scale*p.z + 10*perlin.turbulence(p)));
             }
@@ -97,7 +97,7 @@ namespace Ilya
                 bytes_per_scanline = bytes_per_pixel * width;
             }
 
-            Color val(float u, float v, const Vec3& p) const override
+            Color val(float u, float v, const Point3& p) const override
             {
                 if(!data) return {};
 

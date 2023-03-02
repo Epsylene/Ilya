@@ -3,6 +3,7 @@
 
 #include "Core.hpp"
 #include "Math.hpp"
+#include "functions.hpp"
 
 namespace Ilya
 {

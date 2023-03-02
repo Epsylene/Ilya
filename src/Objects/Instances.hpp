@@ -76,7 +76,7 @@ namespace Ilya
                 return obj->bounding_box(box, t0, t1);
             }
 
-            Vec3 random_point(const Vec3& origin) const override
+            Point3 random_point(const Point3& origin) const override
             {
                 return obj->random_point(origin);
             }

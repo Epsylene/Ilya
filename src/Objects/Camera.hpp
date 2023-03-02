@@ -35,7 +35,7 @@ namespace Ilya
                 u = normalize(cross(up, w));
                 v = cross(w, u);
 
-                orig = from; // the origin point
+                orig = Point3{from}; // the origin point
                 horizontal = focus_dist * viewport_width * u;
                 vertical = focus_dist * viewport_height * v;
                 llc = orig - horizontal/2.f - vertical/2.f - focus_dist*w;
@@ -63,7 +63,8 @@ namespace Ilya
 
             float t_open, t_close;
             float aspect, lens;
-            Vec3 orig, llc, horizontal, vertical;
+            Point3 orig, llc;
+            Vec3 horizontal, vertical;
             Vec3 u, v, w;
     };
 }
