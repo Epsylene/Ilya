@@ -13,6 +13,7 @@ namespace Ilya
         public:
 
             Bounds() = default;
+            Bounds(const Point3& p): min(p), max(p) {}
             Bounds(const Point3& a, const Point3& b):
                     min(a), max(b) {}
 

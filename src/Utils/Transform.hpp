@@ -28,9 +28,12 @@ namespace Ilya
                 Transform(transform, inverse(transform))
             {}
 
+            bool swaps_handedness() const;
+
             Vec3 operator()(const Vec3& v) const;
             Point3 operator()(const Point3& p) const;
             Normal operator()(const Normal& n) const;
+            Bounds operator()(const Bounds& b) const;
 
             Mat4 transform;
             Mat4 inv;

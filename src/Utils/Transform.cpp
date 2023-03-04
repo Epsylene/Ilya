@@ -68,6 +68,19 @@ namespace Ilya
         return {m, inv};
     }
 
+    bool Transform::swaps_handedness() const
+    {
+        // A transformation swaps the handedness of
+        // the coordinate system if its determinant
+        // is negative; we need only to check this on
+        // the actual transformation matrix, the 3x3
+        // upper-left sub-matrix.
+        auto sub = glm::mat3{transform[0], transform[1], transform[2]};
+        auto det = determinant(sub);
+
+        return det < 0.f;
+    }
+
     Point3 Transform::operator()(const Point3& p) const
     {
         // Homogeneous coordinates (also called
@@ -157,5 +170,32 @@ namespace Ilya
         auto newn = transpose(inverse(transform)) * normal;
 
         return Normal{newn};
+    }
+
+    Bounds Transform::operator()(const Bounds& b) const
+    {
+        const auto& T = *this;
+        const auto& min = b.min;
+        const auto& max = b.max;
+
+        Point3 corner0 = {b.min.x, b.min.y, b.min.z};
+        Point3 corner1 = {b.max.x, b.min.y, b.min.z};
+        Point3 corner2 = {b.min.x, b.max.y, b.min.z};
+        Point3 corner3 = {b.min.x, b.min.y, b.max.z};
+        Point3 corner4 = {b.min.x, b.max.y, b.max.z};
+        Point3 corner5 = {b.max.x, b.max.y, b.min.z};
+        Point3 corner6 = {b.max.x, b.min.y, b.max.z};
+        Point3 corner7 = {b.max.x, b.max.y, b.max.z};
+
+        Bounds ret {T(corner0)};
+        ret = surrounding_box(ret, {T(corner1)});
+        ret = surrounding_box(ret, {T(corner2)});
+        ret = surrounding_box(ret, {T(corner3)});
+        ret = surrounding_box(ret, {T(corner4)});
+        ret = surrounding_box(ret, {T(corner5)});
+        ret = surrounding_box(ret, {T(corner6)});
+        ret = surrounding_box(ret, {T(corner7)});
+
+        return ret;
     }
 }
