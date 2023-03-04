@@ -19,7 +19,7 @@ namespace Ilya
                 obj(obj), offset(offset) {}
 
             bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
-            bool bounding_box(Bounds& box, float t0, float t1) const override;
+            bool bounds(Bounds& box, float t0, float t1) const override;
 
         private:
 
@@ -38,7 +38,7 @@ namespace Ilya
 
             bool hit(const Ray& r, float tmin, float tmax, HitRecord& rec) const override;
 
-            bool bounding_box(Bounds& box, float t0, float t1) const override
+            bool bounds(Bounds& box, float t0, float t1) const override
             {
                 box = this->box;
 
@@ -71,9 +71,9 @@ namespace Ilya
                 return true;
             }
 
-            bool bounding_box(Bounds& box, float t0, float t1) const override
+            bool bounds(Bounds& box, float t0, float t1) const override
             {
-                return obj->bounding_box(box, t0, t1);
+                return obj->bounds(box, t0, t1);
             }
 
             Point3 random_point(const Point3& origin) const override

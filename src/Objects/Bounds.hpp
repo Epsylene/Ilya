@@ -5,8 +5,9 @@
 
 namespace Ilya
 {
-    /// Bounding boxes for hittables and sets of hittables, to better
-    /// determine ray paths in the scene (see BVHnode).
+    /// Bounding boxes for hittables and sets of
+    /// hittables, to better determine ray paths in
+    /// the scene (see BVHnode).
     class Bounds
     {
         public:
@@ -15,8 +16,8 @@ namespace Ilya
             Bounds(const Point3& a, const Point3& b):
                     min(a), max(b) {}
 
-            /// Is the bounding box hit by the ray `r` between `tmin`
-            /// and `tmax` ?
+            /// Is the bounding box hit by the ray
+            /// `r` between `tmin` and `tmax` ?
             bool hit(const Ray& r, float tmin, float tmax) const;
 
         public:

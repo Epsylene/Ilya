@@ -38,7 +38,7 @@ namespace Ilya
         return hit;
     }
 
-    bool HittableList::bounding_box(Bounds& box, float t0, float t1) const
+    bool HittableList::bounds(Bounds& box, float t0, float t1) const
     {
         if(objects.empty())
             return false;
@@ -48,7 +48,7 @@ namespace Ilya
 
         for (auto& object: objects)
         {
-            if(!object->bounding_box(objbox, t0, t1))
+            if(!object->bounds(objbox, t0, t1))
                 return false;
 
             box = first_box ? objbox : surrounding_box(box, objbox);
@@ -134,7 +134,7 @@ namespace Ilya
         return c0 + (t - t0)/(t1 - t0) * (c1 - c0);
     }
 
-    bool Sphere::bounding_box(Bounds& box, float t0, float t1) const
+    bool Sphere::bounds(Bounds& box, float t0, float t1) const
     {
         Bounds box1 {center(t0) - Vec3{radius}, center(t0) + Vec3{radius}};
         Bounds box2 {center(t1) - Vec3{radius}, center(t1) + Vec3{radius}};
@@ -206,7 +206,7 @@ namespace Ilya
 
         // First check if the hittables `a` and `b` actually have bounding
         // boxes (that is, if one or both of them are not empty).
-        if(!a->bounding_box(box_a, 0, 0) || !b->bounding_box(box_b, 0, 0))
+        if(!a->bounds(box_a, 0, 0) || !b->bounds(box_b, 0, 0))
             error("No bounding box in BVHnode constructor.\n");
 
         // Then, compare: on the axis N, is the surrounding box of `a`
@@ -275,8 +275,8 @@ namespace Ilya
         // Once the left and right nodes are found, check that they are
         // not empty...
         Bounds box_left {}, box_right {};
-        if(!left->bounding_box(box_left, t0, t1)
-           || !right->bounding_box(box_right, t0, t1))
+        if(!left->bounds(box_left, t0, t1)
+           || !right->bounds(box_right, t0, t1))
         {
             error("No bounding box in BVHnode constructor.");
         }
@@ -304,7 +304,7 @@ namespace Ilya
         return hit_left || hit_right;
     }
 
-    bool BVHnode::bounding_box(Bounds& box, float t0, float t1) const
+    bool BVHnode::bounds(Bounds& box, float t0, float t1) const
     {
         box = this->box;
         return true;
@@ -380,8 +380,8 @@ namespace Ilya
 
     template<Axis ax0, Axis ax1>
     requires (ax0 < ax1)bool
-    Rectangle<ax0, ax1>::bounding_box(Bounds& box, float t0,
-                                      float t1) const
+    Rectangle<ax0, ax1>::bounds(Bounds& box, float t0,
+                                float t1) const
     {
         // The bounding box cannot have zero width, so we leave a little
         // room on the normal axis.

@@ -9,6 +9,27 @@ namespace Ilya
     using Vec4 = glm::vec4;
     using Mat4 = glm::mat4;
 
+    /// @brief 2D point class
+    ///
+    /// Points are zero-dimensional locations in
+    /// space. They can be translated, but not
+    /// rotated or scaled, contrary to vectors, which
+    /// represent arrows (directions with a length).
+    class Point2
+    {
+        public:
+
+            union
+            {
+                struct { float x, y; };
+                struct { std::array<float, 2> coords {}; };
+            };
+
+            Point2(): x(0), y(0) {};
+            Point2(float x, float y, float z):
+                    x(x), y(y) {}
+    };
+
     /// @brief 3D point class
     ///
     /// Points are zero-dimensional locations in

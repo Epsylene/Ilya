@@ -2,6 +2,8 @@
 #pragma once
 
 #include "Utils/Math/geometry.hpp"
+#include "Utils/Interaction.hpp"
+#include "Objects/Bounds.hpp"
 
 namespace Ilya
 {

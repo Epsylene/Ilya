@@ -40,8 +40,8 @@ namespace Ilya
             if(t1 < t0)
                 std::swap(t0, t1);
 
-            tmin = std::max(t0, tmin);
-            tmax = std::min(t1, tmax);
+            tmin = glm::max(t0, tmin);
+            tmax = glm::min(t1, tmax);
 
             if(tmax <= tmin)
                 return false;
@@ -52,13 +52,13 @@ namespace Ilya
 
     Bounds surrounding_box(const Bounds& b1, const Bounds& b2)
     {
-        Point3 min { std::min(b1.min.x, b2.min.x),
-                    std::min(b1.min.y, b2.min.y),
-                    std::min(b1.min.z, b2.min.z) };
+        Point3 min { glm::min(b1.min.x, b2.min.x),
+                    glm::min(b1.min.y, b2.min.y),
+                    glm::min(b1.min.z, b2.min.z) };
 
-        Point3 max { std::max(b1.max.x, b2.max.x),
-                    std::max(b1.max.y, b2.max.y),
-                    std::max(b1.max.z, b2.max.z) };
+        Point3 max { glm::max(b1.max.x, b2.max.x),
+                    glm::max(b1.max.y, b2.max.y),
+                    glm::max(b1.max.z, b2.max.z) };
 
         return { min, max };
     }

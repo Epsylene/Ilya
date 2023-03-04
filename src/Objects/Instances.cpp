@@ -31,9 +31,9 @@ namespace Ilya
         return true;
     }
 
-    bool Translate::bounding_box(Bounds& box, float t0, float t1) const
+    bool Translate::bounds(Bounds& box, float t0, float t1) const
     {
-        if(!obj->bounding_box(box, t0, t1))
+        if(!obj->bounds(box, t0, t1))
             return false;
 
         // The bounding box itself doesn't change when translating, it
@@ -47,7 +47,7 @@ namespace Ilya
     Rotate<axis>::Rotate(const Ref<Hittable>& obj, float angle):
         obj(obj)
     {
-        hadbox = obj->bounding_box(box, 0.f, 1.f);
+        hadbox = obj->bounds(box, 0.f, 1.f);
 
         auto theta = radians(angle);
         sin = std::sin(theta);
