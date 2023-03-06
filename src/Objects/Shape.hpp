@@ -10,6 +10,7 @@ namespace Ilya
     {
         public:
 
+            //
             Shape(const Ref<Transform>& objtoworld,
                 const Ref<Transform>& worldtoobj, bool reverse_orientation):
                 objtoworld(objtoworld), worldtoobj(worldtoobj),
@@ -19,7 +20,13 @@ namespace Ilya
             virtual Bounds objspace_bounds() const = 0;
             virtual Bounds worldspace_bounds() const
             {
-                return (*objtoworld)(objspace_bounds());
+                // By default, to get the object
+                // bounds in world space, just apply
+                // the "object space to world space"
+                // transform on the object space
+                // bounds.
+                const auto& T = *objtoworld;
+                return T(objspace_bounds());
             }
 
         public:

@@ -174,6 +174,11 @@ namespace Ilya
 
     Bounds Transform::operator()(const Bounds& b) const
     {
+        // The transformation of an object bounding box
+        // is calculated by transforming each of the
+        // former box corners and calculating the new
+        // box extension at each step.
+
         const auto& T = *this;
         const auto& min = b.min;
         const auto& max = b.max;

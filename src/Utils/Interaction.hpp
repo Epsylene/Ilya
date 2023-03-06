@@ -27,13 +27,16 @@ namespace Ilya
         // A surface element is defined by a normal
         // at a point (n), the derivatives of the
         // point in the local coordinates of the
-        // surface (dpdu, dpdv), and the differential
-        // change of the normal when moving the point
-        // (dndu, dndv).
+        // surface (dp/du, dp/dv), and the
+        // differential change of the normal when
+        // moving the point (dn/du, dn/dv).
         Normal n;
         Normal dndu, dndv;
         Vec3 dpdu, dpdv;
 
+        // The normal of the surface element is
+        // calculated as the (normalized) cross
+        // product of the dp/du and dp/dv vectors.
         SurfaceElement(const Vec3& dpdu, const Vec3& dpdv,
                        const Normal& dndu, const Normal& dndv):
                        dpdu(dpdu), dpdv(dpdv), dndu(dndu),
@@ -45,9 +48,11 @@ namespace Ilya
     {
         public:
 
-            SurfaceInteraction(const Point3& p, const Vec3& dir, const Point2& uv,
-                               const SurfaceElement& element, float time):
-                    Interaction(p, dir, time), element(element), shading(element) {}
+            SurfaceInteraction(const Point3& p, const
+                Vec3& dir, const Point2& uv, const
+                SurfaceElement& element, float time):
+            Interaction(p, dir, time),
+            element(element), shading(element) {}
 
         public:
 
