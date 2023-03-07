@@ -1,5 +1,6 @@
 
 #include "Transform.hpp"
+#include "Core.hpp"
 
 namespace Ilya
 {
@@ -66,6 +67,11 @@ namespace Ilya
         auto m = inverse(inv);
 
         return {m, inv};
+    }
+
+    Ref<Transform> inverse(const Ref<Transform>& T)
+    {
+        return std::make_shared<Transform>(T->inv, T->transform);
     }
 
     bool Transform::swaps_handedness() const

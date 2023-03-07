@@ -11,7 +11,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin/${CMAKE_BUILD
 
 # Libs, include #
 
-add_library(Ilya SHARED src/Utils/Color.cpp src/Objects/Ray.hpp src/Objects/Hittable.cpp src/Objects/Hittable.hpp src/Core.hpp src/Objects/Camera.hpp src/Objects/Material.cpp src/Objects/Material.hpp src/Objects/Bounds.hpp src/Objects/Bounds.cpp src/Objects/Texture.hpp src/Utils/Perlin.hpp src/Objects/Instances.cpp src/Objects/Instances.hpp src/Core/Renderer.cpp src/Core/Renderer.hpp src/Core/Image.cpp src/Core/Image.hpp src/ilpch.hpp src/Utils/Random.cpp src/Utils/Random.hpp src/Utils/PDF.hpp src/Utils/Transform.cpp src/Utils/Transform.hpp src/Utils/Math/geometry.cpp src/Utils/Math/geometry.hpp src/Utils/Math/functions.cpp src/Utils/Math/functions.hpp src/Utils/Interaction.hpp src/Objects/Shape.hpp)
+add_library(Ilya SHARED src/Utils/Color.cpp src/Objects/Ray.hpp src/Objects/Hittable.cpp src/Objects/Hittable.hpp src/Core.hpp src/Objects/Camera.hpp src/Objects/Material.cpp src/Objects/Material.hpp src/Objects/Bounds.hpp src/Objects/Bounds.cpp src/Objects/Texture.hpp src/Utils/Perlin.hpp src/Objects/Instances.cpp src/Objects/Instances.hpp src/Core/Renderer.cpp src/Core/Renderer.hpp src/Core/Image.cpp src/Core/Image.hpp src/ilpch.hpp src/Utils/Random.cpp src/Utils/Random.hpp src/Utils/PDF.hpp src/Utils/Transform.cpp src/Utils/Transform.hpp src/Utils/Math/geometry.cpp src/Utils/Math/geometry.hpp src/Utils/Math/functions.cpp src/Utils/Math/functions.hpp src/Utils/Interaction.hpp src/Objects/Shapes/Shape.hpp src/Objects/Shapes/Shape.cpp src/Objects/Shapes/Sphere.cpp src/Objects/Shapes/Sphere.hpp)
 
 add_library(stb_image STATIC lib/stb_image/stb_image.cpp lib/stb_image/stb_image.h)
 target_include_directories(stb_image PUBLIC lib/stb_image)

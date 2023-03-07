@@ -25,7 +25,7 @@ namespace Ilya
                 transform(transform), inv(inverse) {}
 
             explicit Transform(const Mat4& transform):
-                Transform(transform, inverse(transform))
+                Transform(transform, glm::inverse(transform))
             {}
 
             bool swaps_handedness() const;
@@ -45,6 +45,8 @@ namespace Ilya
     Transform scale(const Vec3& factor);
     template<Axis axis> Transform rotate(float angle);
     Transform rotate(float angle, const Vec3& axis);
+
+    Ref<Transform> inverse(const Ref<Transform>& T);
 
     Transform look_at(const Vec3& pos, const Vec3& at, const Vec3& up);
 }
