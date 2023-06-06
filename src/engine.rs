@@ -4,7 +4,11 @@ use crate::ray::Ray;
 use pixels::{SurfaceTexture, Pixels};
 use winit::{window, event_loop::{EventLoop, ControlFlow}, dpi::LogicalSize, window::WindowBuilder, event::{Event, WindowEvent, VirtualKeyCode}};
 use winit_input_helper::WinitInputHelper;
+
+use crate::point::Point3;
 use glam::Vec3;
+
+use crate::scene::Scene;
 
 struct Window
 {
@@ -14,6 +18,7 @@ struct Window
     gui: Framework,
 }
 
+#[derive(Copy, Clone)]
 pub struct WindowOptions {
     pub width: u32,
     pub height: u32,
@@ -24,9 +29,11 @@ pub struct EngineOptions {
     pub window: WindowOptions,
 }
 
-pub struct Engine
-{
-    
+
+
+pub struct Engine {
+    pub scene: Scene,
+    pub options: EngineOptions,
 }
 
 impl Window {
@@ -69,9 +76,20 @@ impl Window {
 }
 
 impl Engine {
-    pub fn run(options: EngineOptions) {
+    pub fn new(options: EngineOptions) -> Self {
+        let mut scene = Scene::new();
+
+        scene.add_sphere();
+        
+        Self {
+            scene,
+            options,
+        }
+    }
+
+    pub fn run(self) {
         let event_loop = EventLoop::new();
-        let wo = options.window;
+        let wo = self.options.window;
         let mut window = Window::new(wo.width, wo.height, wo.name, &event_loop);
 
         // Main app loop
@@ -101,7 +119,7 @@ impl Engine {
                 // Draw the current frame
                 Event::RedrawRequested(_) => {
                     // Draw the world
-                    Engine::render(window.texture.frame_mut(), &wo);
+                    Engine::render(&self, window.texture.frame_mut());
 
                     // Prepare egui
                     window.gui.prepare(&window.handle);
@@ -129,30 +147,31 @@ impl Engine {
         });
     }
 
-    fn render(frame: &mut [u8], window: &WindowOptions) {
-        let WIDTH = window.width;
-        let HEIGHT = window.height;
-        let aspect = WIDTH as f32 / HEIGHT as f32;
+    fn render(&self, frame: &mut [u8]) {
+        let wo = self.options.window;
+        let width = wo.width;
+        let height = wo.height;
+        let aspect = width as f32 / height as f32;
         let focal_length = 1.0;
 
-        let origin = Vec3::default();
-        let vertical = Vec3::new(0.0, 2.0, 0.0);
-        let horizontal = Vec3::new(2.0 * aspect, 0.0, 0.0);
-        let llc = origin - horizontal/2.0 - vertical/2.0 - Vec3::new(0.0, 0.0, focal_length);
+        let origin = Point3::default();
+        let vertical = 2.0*Vec3::Y;
+        let horizontal = 2.0*aspect*Vec3::X;
+        let llc = Vec3::from(origin) - horizontal/2.0 - vertical/2.0 - Vec3::new(0.0, 0.0, focal_length);
 
         for (i, pixel) in frame.chunks_exact_mut(4).enumerate() {
-            let x = i % WIDTH as usize;
-            let y = i / WIDTH as usize;
+            let x = i % width as usize;
+            let y = i / width as usize;
     
-            let u = x as f32 / (WIDTH-1) as f32;
-            let v = 1.0 - (y as f32 / (HEIGHT-1) as f32);
+            let u = x as f32 / (width-1) as f32;
+            let v = 1.0 - (y as f32 / (height-1) as f32);
     
             let ray = Ray::new(
                 origin,
-                llc + u*horizontal + v*vertical - origin,
+                llc + u*horizontal + v*vertical - Vec3::from(origin),
             );
     
-            pixel.copy_from_slice(&ray.color().to_255());
+            pixel.copy_from_slice(&ray.color(&self.scene).to_255());
         }
     }
 }

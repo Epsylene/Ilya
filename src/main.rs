@@ -3,6 +3,9 @@ mod engine;
 mod gui;
 mod color;
 mod ray;
+mod point;
+mod hittable;
+mod scene;
 
 use crate::engine::{Engine, EngineOptions, WindowOptions};
 
@@ -14,6 +17,7 @@ fn main() {
             name: "Ilya", 
         }
     };
-    
-    Engine::run(options);
+
+    let app = Engine::new(options);
+    app.run();
 }

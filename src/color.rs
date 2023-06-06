@@ -1,4 +1,6 @@
 use std::ops;
+use std::convert::From;
+use glam::Vec3;
 
 pub struct Color {
     pub r: f32,
@@ -32,18 +34,6 @@ impl Color {
     }
 }
 
-impl ops::Mul<f32> for Color {
-    type Output = Self;
-
-    fn mul(self, rhs: f32) -> Self {
-        Self::rgb(
-            self.r * rhs,
-            self.g * rhs,
-            self.b * rhs,
-        )
-    }
-}
-
 impl ops::Mul<Color> for f32 {
     type Output = Color;
 
@@ -65,5 +55,11 @@ impl ops::Add<Color> for Color {
             self.g + rhs.g,
             self.b + rhs.b,
         )
+    }
+}
+
+impl From<Vec3> for Color {
+    fn from(vec: Vec3) -> Self {
+        Self::rgb(vec.x, vec.y, vec.z)
     }
 }

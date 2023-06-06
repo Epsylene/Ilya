@@ -55,9 +55,9 @@ impl Framework {
         }
     }
 
-     /// Handle input events from the window manager.
-     pub(crate) fn handle_event(&mut self, event: &winit::event::WindowEvent) {
-        let _ = self.egui_state.on_event(&self.egui_ctx, event);
+    /// Handle input events from the window manager.
+    pub(crate) fn handle_event(&mut self, event: &winit::event::WindowEvent) {
+    let _ = self.egui_state.on_event(&self.egui_ctx, event);
     }
 
     /// Resize egui.
@@ -77,7 +77,7 @@ impl Framework {
         // Run the egui frame and create all paint jobs to prepare for rendering.
         let raw_input = self.egui_state.take_egui_input(window);
         let output = self.egui_ctx.run(raw_input, |egui_ctx| {
-            // Draw the demo application.
+            // Draw the application.
             self.gui.ui(egui_ctx);
         });
 
