@@ -1,15 +1,19 @@
 
-mod app;
+mod engine;
 mod gui;
+mod color;
+mod ray;
 
-use crate::app::{App, AppOptions};
+use crate::engine::{Engine, EngineOptions, WindowOptions};
 
 fn main() {
-    let options = AppOptions {
-        width: 600,
-        height: 500,
-        name: "Ilya",
+    let options = EngineOptions {
+        window: WindowOptions {
+            width: 600,
+            height: 500,
+            name: "Ilya", 
+        }
     };
     
-    App::run(options);
+    Engine::run(options);
 }

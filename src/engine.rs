@@ -1,10 +1,12 @@
 use crate::gui::Framework;
+use crate::ray::Ray;
 
 use pixels::{SurfaceTexture, Pixels};
-use winit::{window, event_loop::{EventLoop, ControlFlow}, dpi::LogicalSize, window::WindowBuilder, event::{Event, VirtualKeyCode}};
+use winit::{window, event_loop::{EventLoop, ControlFlow}, dpi::LogicalSize, window::WindowBuilder, event::{Event, WindowEvent, VirtualKeyCode}};
 use winit_input_helper::WinitInputHelper;
+use glam::Vec3;
 
-pub struct Window
+struct Window
 {
     handle: window::Window,
     input: WinitInputHelper,
@@ -12,13 +14,20 @@ pub struct Window
     gui: Framework,
 }
 
-pub struct AppOptions {
+pub struct WindowOptions {
     pub width: u32,
     pub height: u32,
     pub name: &'static str,
 }
 
-pub struct App;
+pub struct EngineOptions {
+    pub window: WindowOptions,
+}
+
+pub struct Engine
+{
+    
+}
 
 impl Window {
     pub fn new(width: u32, height: u32, name: &str, event_loop: &EventLoop<()>) -> Self {
@@ -59,49 +68,41 @@ impl Window {
     }
 }
 
-impl App {
-    pub fn run(options: AppOptions) {
+impl Engine {
+    pub fn run(options: EngineOptions) {
         let event_loop = EventLoop::new();
-        let mut window = Window::new(options.width, options.height, options.name, &event_loop);
+        let wo = options.window;
+        let mut window = Window::new(wo.width, wo.height, wo.name, &event_loop);
 
+        // Main app loop
         event_loop.run(move |event, _, control_flow| {
-            // Handle input events
+            // Update the input
             if window.input.update(&event) {
                 // Close events
                 if window.input.key_pressed(VirtualKeyCode::Escape) || window.input.close_requested() || window.input.destroyed() {
-                    *control_flow = ControlFlow::Exit;
+                    control_flow.set_exit();
                     return;
                 }
-    
-                // Resize the window
-                if let Some(scale) = window.input.scale_factor() {
-                    window.gui.scale_factor(scale);
-                }
-    
-                // Resize the window
-                if let Some(size) = window.input.window_resized() {
-                    if let Err(err) = window.texture.resize_surface(size.width, size.height) {
-                        println!("pixels.resize_surface error, {:?}", err);
-                        *control_flow = ControlFlow::Exit;
-                        return;
-                    }
-                    window.gui.resize(size.width, size.height);
-                }
-    
-                // Update internal state and request a redraw
+
                 window.handle.request_redraw();
             }
-    
+            
+            // Update the window
             match event {
                 Event::WindowEvent { event, .. } => {
                     // Update egui inputs
                     window.gui.handle_event(&event);
+                
+                    if event == WindowEvent::CloseRequested {
+                        control_flow.set_exit();
+                    }
                 }
+
                 // Draw the current frame
                 Event::RedrawRequested(_) => {
                     // Draw the world
-                    App::render(window.texture.frame_mut(), &options);
-    
+                    Engine::render(window.texture.frame_mut(), &wo);
+
                     // Prepare egui
                     window.gui.prepare(&window.handle);
     
@@ -119,31 +120,39 @@ impl App {
                     // Basic error handling
                     if let Err(err) = render_result {
                         println!("pixels.render error, {:?}", err);
-                        *control_flow = ControlFlow::Exit;
+                        control_flow.set_exit();
                     }
                 }
+
                 _ => (),
             }
         });
     }
 
-    fn render(frame: &mut [u8], options: &AppOptions) {
-        let width = options.width;
-        let height = options.height;
+    fn render(frame: &mut [u8], window: &WindowOptions) {
+        let WIDTH = window.width;
+        let HEIGHT = window.height;
+        let aspect = WIDTH as f32 / HEIGHT as f32;
+        let focal_length = 1.0;
+
+        let origin = Vec3::default();
+        let vertical = Vec3::new(0.0, 2.0, 0.0);
+        let horizontal = Vec3::new(2.0 * aspect, 0.0, 0.0);
+        let llc = origin - horizontal/2.0 - vertical/2.0 - Vec3::new(0.0, 0.0, focal_length);
 
         for (i, pixel) in frame.chunks_exact_mut(4).enumerate() {
-            let x = i % width as usize;
-            let y = i / width as usize;
+            let x = i % WIDTH as usize;
+            let y = i / WIDTH as usize;
     
-            let r = x as f64 / (width-1) as f64;
-            let g = y as f64 / (height-1) as f64;
-            let b = 0.25;
+            let u = x as f32 / (WIDTH-1) as f32;
+            let v = 1.0 - (y as f32 / (HEIGHT-1) as f32);
     
-            let ir = (255.999 * r) as u8;
-            let ig = (255.999 * g) as u8;
-            let ib = (255.999 * b) as u8;
+            let ray = Ray::new(
+                origin,
+                llc + u*horizontal + v*vertical - origin,
+            );
     
-            pixel.copy_from_slice(&[ir, ig, ib, 255]);
+            pixel.copy_from_slice(&ray.color().to_255());
         }
     }
 }
