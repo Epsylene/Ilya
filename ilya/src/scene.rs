@@ -5,12 +5,14 @@ use glam::Vec3;
 
 pub struct Scene {
     pub objects: Vec<Arc<dyn Hittable>>,
+    pub dimensions: (u32, u32),
 }
 
 impl Scene {
-    pub fn new() -> Self {
+    pub fn new(dimensions: (u32, u32)) -> Self {
         Self {
             objects: Vec::new(),
+            dimensions,
         }
     }
 

@@ -1,7 +1,7 @@
 
 use glam::Vec3;
 use crate::scene::Scene;
-use crate::point::Point3;
+use crate::utils::point::Point3;
 use crate::ray::Ray;
 
 pub struct HitRecord {

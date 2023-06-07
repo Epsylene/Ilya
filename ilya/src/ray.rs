@@ -1,8 +1,7 @@
 
 use crate::scene::Scene;
 use crate::hittable::Hittable;
-use crate::color::Color;
-use crate::point::Point3;
+use crate::utils::{point::Point3, color::Color};
 use glam::Vec3;
 
 pub struct Ray {

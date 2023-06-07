@@ -1,11 +1,10 @@
+
 use egui::{ClippedPrimitive, Context, TexturesDelta};
 use egui_wgpu::renderer::{Renderer, ScreenDescriptor};
-use pixels::{wgpu, PixelsContext};
-use winit::event_loop::EventLoopWindowTarget;
-use winit::window::Window;
-use pixels::Pixels;
+use pixels::{wgpu, PixelsContext, Pixels};
+use winit::{event_loop::EventLoopWindowTarget, window::Window};
 
-pub(crate) struct Framework {
+pub struct Framework {
     // State for egui
     egui_ctx: Context,
     egui_state: egui_winit::State,
